@@ -3,11 +3,13 @@
 
 #define M (500000)
 
-void reverse(int *list, int start, int end)
+typedef int LIST_TYPE;
+
+void reverse(LIST_TYPE *list, int start, int end)
 {
     while(end > start)
     {
-        int tmp = list[start];
+        LIST_TYPE tmp = list[start];
         list[start] = list[end];
         list[end] = tmp;
         start++;
@@ -15,23 +17,25 @@ void reverse(int *list, int start, int end)
     }
 }
 
-void shift(int *list, int start, int mid, int end)
+void shift(LIST_TYPE *list, int start, int mid, int end)
 {
     reverse(list, start, mid - 1);
     reverse(list, mid, end);
     reverse(list, start, end);
 }
 
-void merge(int *list, int start, int mid, int end)
+void merge(LIST_TYPE *list, int start, int mid, int end, int (*cmp)(const void*, const void *))
 {
     int i = start, j = mid, old_j;
     while(i < j && j <= end){
         old_j = j;
-        while(list[i] <= list[j] && i < j)
+        // i<j must be tested first
+        while(i < j && (*cmp)((const void*)list[i], (const void*)list[j]) <= 0)
         {
             i++;
         }
-        while(list[j] < list[i] && j <= end)
+        // j<=end must be tested first
+        while(j <= end && (*cmp)((const void*)list[j], (const void*)list[i]) < 0)
         {
             j++;
         }
@@ -40,15 +44,20 @@ void merge(int *list, int start, int mid, int end)
     }
 }
 
-void msort(int *list, int start, int end)
+void msort(LIST_TYPE *list, int start, int end, int (*cmp)(const void*, const void *))
 {
     if(start < end)
     {
         int mid = (start + end)/2;
-        sort(list, start, mid);
-        sort(list, mid + 1, end);
-        merge(list, start, mid + 1, end);
+        msort(list, start, mid, cmp);
+        msort(list, mid + 1, end, cmp);
+        merge(list, start, mid + 1, end, cmp);
     }
+}
+
+int compare(const void *x, const void *y)
+{
+    return (int)((long)x - (long)y);
 }
 
 int find(int *list, int n, int value, int *l, int *r)
@@ -79,14 +88,15 @@ int find(int *list, int n, int value, int *l, int *r)
 
 int main()
 {
-    int n, m, i, j, *points, a, b, la, ra, lb, rb;
+    int n, m, i, j, a, b, la, ra, lb, rb;
+    LIST_TYPE *points;
     scanf("%d %d", &n, &m);
     points = (int*)malloc(sizeof(int)*n);
     for(i = 0; i < n; i++)
     {
         scanf("%d", points + i);
     }
-    msort(points, 0, n - 1);
+    msort(points, 0, n - 1, &compare);
     for(i = 0; i < m; i++)
     {
         scanf("%d %d", &a, &b);

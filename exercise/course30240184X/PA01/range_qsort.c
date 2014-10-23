@@ -4,50 +4,53 @@
 #define M (500000)
 #define CUTOFF (3)
 
-void swap(int *list, int a, int b)
+typedef int LIST_TYPE;
+
+void swap(LIST_TYPE *list, int a, int b)
 {
-    int tmp = list[a];
+    LIST_TYPE tmp = list[a];
     list[a] = list[b];
     list[b] = tmp;
 }
 
-void sort3(int *list, int left, int right)
+void sort3(LIST_TYPE *list, int left, int right, int (*cmp)(const void *, const void *))
 {
     int mid = (left + right)/2;
-    if(list[left] > list[mid])
+    if((*cmp)((const void *)list[left], (const void *)list[mid]) > 0)
     {
         swap(list, left, mid);
     }
-    if(list[left] > list[right])
+    if((*cmp)((const void *)list[left], (const void *)list[right]) > 0)
     {
         swap(list, left, right);
     }
-    if(list[mid] > list[right])
+    if((*cmp)((const void *)list[mid], (const void *)list[right]) > 0)
     {
         swap(list, mid, right);
     }
 }
 
-int median3(int *list, int left, int right)
+LIST_TYPE median3(LIST_TYPE *list, int left, int right, int (*cmp)(const void *, const void *))
 {
     int mid = (left + right)/2;
-    sort3(list, left, right);
+    sort3(list, left, right, cmp);
     swap(list, mid, right - 1);
     return list[right - 1];
 }
 
-int myQsort(int *list, int left, int right)
+void myQsort(LIST_TYPE *list, int left, int right, int (*cmp)(const void *, const void *))
 {
-    int i, j, pivot;
+    int i, j;
+    LIST_TYPE pivot;
     if(left + CUTOFF <= right)
     {
-        pivot = median3(list, left, right);
+        pivot = median3(list, left, right, cmp);
         i = left;
         j = right - 1;
         for(; ; )
         {
-            while(list[++i] < pivot){}
-            while(list[--j] > pivot){}
+            while((*cmp)((const void *)list[++i], (const void *)pivot) < 0){}
+            while((*cmp)((const void *)list[--j], (const void *)pivot) > 0){}
             if(i < j)
             {
                 swap(list, i, j);
@@ -58,13 +61,18 @@ int myQsort(int *list, int left, int right)
             }
         }
         swap(list, i, right - 1);
-        myQsort(list, left, i - 1);
-        myQsort(list, i + 1, right);
+        myQsort(list, left, i - 1, cmp);
+        myQsort(list, i + 1, right, cmp);
     }
     else
     {
-        sort3(list, left, right);
+        sort3(list, left, right, cmp);
     }
+}
+
+int compare(const void *x, const void *y)
+{
+    return (int)((long)x - (long)y);
 }
 
 int find(int *list, int n, int value, int *l, int *r)
@@ -95,14 +103,15 @@ int find(int *list, int n, int value, int *l, int *r)
 
 int main()
 {
-    int n, m, i, j, *points, a, b, la, ra, lb, rb;
+    int n, m, i, j, a, b, la, ra, lb, rb;
+    LIST_TYPE *points;
     scanf("%d %d", &n, &m);
     points = (int*)malloc(sizeof(int)*n);
     for(i = 0; i < n; i++)
     {
         scanf("%d", points + i);
     }
-    myQsort(points, 0, n - 1);
+    myQsort(points, 0, n - 1, &compare);
     for(i = 0; i < m; i++)
     {
         scanf("%d %d", &a, &b);
