@@ -1,6 +1,42 @@
 #include<stdlib.h>
 #include<stdio.h>
 
+
+#define MAX_BUF_LEN (100<<10<<10)
+
+char fread_buf[MAX_BUF_LEN];
+int fread_buf_pointer = 0;
+
+char *read_from_stdin()
+{
+    int len = fread(fread_buf, sizeof(char), MAX_BUF_LEN, stdin);
+    fread_buf[len] = '\0';
+    return fread_buf;
+}
+
+int next_int(int *res)
+{
+    *res = 0;
+    char c = fread_buf[fread_buf_pointer++];
+    while(!(c >= '0' && c <= '9' || c == '\0'))
+    {
+        c = fread_buf[fread_buf_pointer++];
+    }
+    if(c == '\0')
+    {
+        return 0;
+    }
+    while(c != ' ' && c != '\n' && c != '\0')
+    {
+        if(c >= '0' && c <= '9')
+        {
+            *res = (*res)*10 + c - '0';
+        }
+        c = fread_buf[fread_buf_pointer++];
+    }
+    return c;
+}
+
 #define M (500000)
 #define CUTOFF (3)
 
@@ -105,16 +141,19 @@ int main()
 {
     int n, m, i, j, a, b, la, ra, lb, rb;
     LIST_TYPE *points;
-    scanf("%d %d", &n, &m);
+    read_from_stdin();
+    next_int(&n);
+    next_int(&m);
     points = (int*)malloc(sizeof(int)*n);
     for(i = 0; i < n; i++)
     {
-        scanf("%d", points + i);
+        next_int(points + i);
     }
     myQsort(points, 0, n - 1, &compare);
     for(i = 0; i < m; i++)
     {
-        scanf("%d %d", &a, &b);
+        next_int(&a);
+        next_int(&b);
         a = find(points, n, a, &la, &ra);
         b = find(points, n, b, &lb, &rb);
         if(la < 0 && lb < 0 || ra > n- 1 && rb > n - 1)

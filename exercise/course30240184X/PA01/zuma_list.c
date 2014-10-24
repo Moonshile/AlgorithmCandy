@@ -1,6 +1,51 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MAX_BUF_LEN (100<<10<<10)
+
+char fread_buf[MAX_BUF_LEN];
+int fread_buf_pointer = 0;
+
+char *read_from_stdin()
+{
+    int len = fread(fread_buf, sizeof(char), MAX_BUF_LEN, stdin);
+    fread_buf[len] = '\0';
+    return fread_buf;
+}
+
+int next_int(int *res)
+{
+    *res = 0;
+    char c = fread_buf[fread_buf_pointer++];
+    while(!(c >= '0' && c <= '9' || c == '\0'))
+    {
+        c = fread_buf[fread_buf_pointer++];
+    }
+    if(c == '\0')
+    {
+        return 0;
+    }
+    while(c != ' ' && c != '\n' && c != '\0')
+    {
+        if(c >= '0' && c <= '9')
+        {
+            *res = (*res)*10 + c - '0';
+        }
+        c = fread_buf[fread_buf_pointer++];
+    }
+    return c;
+}
+
+char next_char()
+{
+    char c = fread_buf[fread_buf_pointer++];
+    while(!(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '\0' || c == '\n'))
+    {
+        c = fread_buf[fread_buf_pointer++];
+    }
+    return c;
+}
+
 typedef struct __ball__ {
     char color;
     struct __ball__ *pre;
@@ -110,36 +155,44 @@ void deleteAllSame(Chain *chain, Ball *ball)
     }
 }
 
-#define MAX_LEN (20001)
+#define MAX_LEN (100<<10<<10)
+char outs[MAX_LEN];
 
 int main()
 {
     Chain chain;
     chain.ball = 0;
     Ball *p;
-    char c, outs[MAX_LEN];
-    int i = 0, n, j, oi;
-    while((c = getchar()) != '\n')
+    char c;
+    int i = 0, n, j, oi = 0;
+    read_from_stdin();
+    while((c = next_char()) != '\n')
     {
         insert(&chain, i++, newBall(c));
     }
-    scanf("%d", &n);
+    next_int(&n);
     for(i = 0; i < n; i++)
     {
-        scanf("%d %c", &j, &c);
+        next_int(&j);
+        c = next_char();
         Ball *b = newBall(c);
         insert(&chain, j, b);
         deleteAllSame(&chain, b);
         p = chain.ball;
-        oi = 0;
         do
         {
             outs[oi++] = p ? p->color : '-';
             p = p ? p->next : p;
         }while(p);
         outs[oi++] = '\n';
-        outs[oi++] = 0;
-        printf("%s", outs);
+        if(oi >= 90<<10<<10)
+        {
+            outs[oi++] = 0;
+            printf("%s", outs);
+            oi = 0;
+        }
     }
+    outs[oi++] = 0;
+    printf("%s", outs);
     return 0;
 }
