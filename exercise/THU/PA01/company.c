@@ -10,9 +10,12 @@ char next_char();
 #define MAX_M (1000000)
 
 int code[MAX_N];
+// for remember all staffs who have operations
+int staffs[MAX_M];
 
+// O(N) or o(N + M) ?
 int main() {
-    int res = 0, n, m, i, closed = 0, staff, c, num = 0;
+    int res = 0, n, m, i, closed = 0, staff, c, num = 0, si = 0;
     char ch;
     read_from_stdin();
     next_int(&n);
@@ -27,9 +30,12 @@ int main() {
             next_int(&staff);
             staff--;
             next_int(&c);
+            closed = 0;
             // if closed, num = 0; else if staff is already in, num  = num, else increase num
-            num = closed ? 0 : (code[staff] == -1 ? num + 1 : num);
+            num = (code[staff] == -1 ? num + 1 : num);
             code[staff] = c;
+            // remember
+            staffs[si++] = staff;
             break;
         case 'O':
             next_int(&staff);
@@ -37,10 +43,18 @@ int main() {
             // if closed, num = 0; else if staff is already out, num  = num, else decrease num
             num = closed ? 0 : (code[staff] == -1 ? num : num - 1);
             code[staff] = -1;
+            // remember
+            staffs[si++] = staff;
             break;
         case 'C':
             closed = 1;
             num = 0;
+            // all staffs log out
+            while(--si >= 0){
+                code[staffs[si]] = -1;
+            }
+            // forget all staffs
+            si = 0;
             break;
         case 'N':
             res += num;
@@ -49,6 +63,9 @@ int main() {
             next_int(&staff);
             staff--;
             res += closed ? -1 : code[staff];
+            // remember
+            staffs[si++] = staff;
+            break;
         }
     }
     printf("%d\n", res);
