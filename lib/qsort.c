@@ -18,7 +18,7 @@ void swap(LIST_TYPE *list, int a, int b) {
 
 // sort a 3-more-element list, which has a range [lo, hi)
 void sort3(LIST_TYPE *list, int lo, int hi, int (*cmp)(const void *, const void *)) {
-    int mid = (lo + hi)/2;
+    int mid = (lo + hi)>>1;
     hi--;
     if((*cmp)((const void *)list[lo], (const void *)list[mid]) > 0) {
         swap(list, lo, mid);
@@ -34,7 +34,7 @@ void sort3(LIST_TYPE *list, int lo, int hi, int (*cmp)(const void *, const void 
 // select the median of list which has a range [lo, hi)
 // the median is the median of elements at the first, middle, and last location in the list
 LIST_TYPE median3(LIST_TYPE *list, int lo, int hi, int (*cmp)(const void *, const void *)) {
-    int mid = (lo + hi)/2;
+    int mid = (lo + hi)>>1;
     sort3(list, lo, hi, cmp);
     swap(list, mid, hi - 2);
     return list[hi - 2];

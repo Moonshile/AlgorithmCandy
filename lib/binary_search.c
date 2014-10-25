@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 typedef int LIST_TYPE;
-int bin_search(LIST_TYPE *list, int lo, int hi, LIST_TYPE e, int (*cmp)(const void*, const void *));
+int bin_search(LIST_TYPE*, int, int, LIST_TYPE, int (*)(const void*, const void *));
 
 // search e in list, with range [lo, hi)
 // if e does not exist, then return the greatest index of the element that not greater than e
