@@ -34,6 +34,7 @@ int next_int(int *res) {
     return c;
 }
 
+// next char, only a-zA-Z
 char next_char() {
     char c = fread_buf[fread_buf_pointer++];
     while(!(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '\0')) {

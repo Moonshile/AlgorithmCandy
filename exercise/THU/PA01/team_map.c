@@ -12,7 +12,7 @@ char coach[MAX];
 int main() {
     int n, i, e, *team, *t, abc[3] = {0, 0, 0};
     read_from_stdin();
-    memset(coach, 0, MAX);
+    memset(coach, 0, MAX*sizeof(char));
     next_int(&n);
     team = (int*)malloc(sizeof(int)*n*3);
     for(i = 0; i < n*3; i++) {
