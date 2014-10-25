@@ -2,41 +2,30 @@
 #include <stdlib.h>
 
 typedef int LIST_TYPE;
+int bin_search(LIST_TYPE *list, int lo, int hi, LIST_TYPE e, int (*cmp)(const void*, const void *));
 
-int find(LIST_TYPE *list, int n, LIST_TYPE value, int (*cmp)(const void*, const void *))
-{
-     int start = 0, end = n - 1, mid = (start + end)/2;
-     while((*cmp)((const void *)list[mid], (const void *)value) != 0)
-     {
-         if(start >= end)
-         {
-             return -1;
-         }
-         if((*cmp)((const void *)list[mid], (const void *)value) < 0)
-         {
-             start = mid + 1;
-         }
-         else
-         {
-             end = mid - 1;
-         }
-         mid = (start + end)/2;
-     }
-     return mid;
+// search e in list, with range [lo, hi)
+// if e does not exist, then return the greatest index of the element that not greater than e
+int bin_search(LIST_TYPE *list, int lo, int hi, LIST_TYPE e, int (*cmp)(const void*, const void *)){
+    // invariant: list[lo] <= e < list[hi]
+    while(lo < hi){
+        int mi = (hi + lo)>>1;
+        // if e < list[mi] then search [lo, mi) else [mi+1, hi)
+        // if e== list[mi], then search [mi+1, hi) until [mi+1, mi+1) and break to return mi+1-1
+        ((*cmp)((const void *)e, (const void *)list[mi]) < 0) ? hi = mi : lo  = mi + 1;
+    }
+    return --lo;
 }
 
-int compare(const void *a, const void *b)
-{
+int compare(const void *a, const void *b){
     return (int)((long)a - (long)b);
 }
 
-int main()
-{
+int main(){
     LIST_TYPE list[] = {1,2,3,4,5,6,7,8,9};
     int i;
-    for(i = 0; i < 10; i++)
-    {
-        printf("%d ", find(list, 9, i, &compare));
+    for(i = 0; i < 10; i++){
+        printf("%d ", bin_search(list, 0, 9, i, &compare));
     }
     putchar('\n');
 }
