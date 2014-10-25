@@ -20,14 +20,14 @@ void merge(LIST_TYPE* list, LIST_TYPE* tmp, int lo, int mi, int hi, int (*cmp)(c
         // but will produce extra iterations in this loop
         
         // c hasn't been copied, and c[k] is lower than b[j]
-        if(k < len_c && c[k] < b[j]) {
+        if(k < len_c && (*cmp)((const void*)c[k], (const void*)b[j]) < 0) {
             a[i++] = c[k++];
         }
         // c has been copied, OR b[j] is not greater than c[k]
         // (1) if c has been copied, then you should copy b only
         // (2) else if b[j] < c[k], surely you should copy b,
         //     and if b[j] == c[k], you should copy b first to ensure stability.
-        if(len_c <= k || b[j] <= c[k]) {
+        if(len_c <= k || (*cmp)((const void*)b[j], (const void*)c[k]) <= 0) {
             a[i++] = b[j++];
         }
     }
