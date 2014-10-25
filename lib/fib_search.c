@@ -62,23 +62,19 @@ int fib_search(LIST_TYPE *list, int lo, int hi, LIST_TYPE e, int (*cmp)(const vo
     return -1;
 }
 
-int compare(const void *a, const void *b)
-{
+int compare(const void *a, const void *b){
     return (int)((long)a - (long)b);
 }
 
-int main()
-{
+int main(){
     LIST_TYPE list[] = {1,2,3,4,5,6,7,8,9};
     LIST_TYPE list2[] = {1,2,3,4,5,6,7,8,9,10,11,12,13};
     int i;
-    for(i = 0; i < 10; i++)
-    {
+    for(i = 0; i < 10; i++){
         printf("%d ", fib_search(list, 0, 9, i, &compare));
     }
     putchar('\n');
-    for(i = 0; i < 14; i++)
-    {
+    for(i = 0; i < 14; i++){
         printf("%d ", fib_search(list2, 0, 13, i, &compare));
     }
     putchar('\n');
