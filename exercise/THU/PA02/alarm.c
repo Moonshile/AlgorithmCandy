@@ -73,7 +73,7 @@ int next_longlong(long long *res) {
 
 // next integer, prefix blanks will be removed
 int next_int(int *res) {
-    *res = 0LL;
+    *res = 0;
     char c = fread_buf[fread_buf_pointer++];
     while(!(c >= '0' && c <= '9' || c == '\0')) {
         c = fread_buf[fread_buf_pointer++];
@@ -82,7 +82,7 @@ int next_int(int *res) {
         return 0;
     }
     while(c >= '0' && c <= '9') {
-        *res = (*res)*10LL + (long long)(c - '0');
+        *res = (*res)*10 + c - '0';
         c = fread_buf[fread_buf_pointer++];
     }
     return c;
