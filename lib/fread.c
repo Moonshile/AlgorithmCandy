@@ -19,17 +19,25 @@ char *read_from_stdin() {
 
 // next integer, prefix blanks will be removed
 int next_int(int *res) {
-    *res = 0;
     char c = fread_buf[fread_buf_pointer++];
-    while(!(c >= '0' && c <= '9' || c == '\0')) {
+    int is_pos = 1;
+    while(!(c >= '0' && c <= '9' || c == '\0' || c == '-')) {
         c = fread_buf[fread_buf_pointer++];
     }
     if(c == '\0') {
         return 0;
     }
+    if(c == '-') {
+        is_pos = 0;
+        c = fread_buf[fread_buf_pointer++];
+    }
+    *res = 0;
     while(c >= '0' && c <= '9') {
         *res = (*res)*10 + c - '0';
         c = fread_buf[fread_buf_pointer++];
+    }
+    if(!is_pos) {
+        *res = -*res;
     }
     return c;
 }
