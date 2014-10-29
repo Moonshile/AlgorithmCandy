@@ -67,7 +67,7 @@ int find(int x) {
     int p = HASH_FUNC(x), collision = 0;
     while(_map[p] != EMPTY && (int)(_map[p]) != x) {
         p += ((++collision)<<1) - 1;
-        if(p > MAP_SIZE) {
+        if(p >= MAP_SIZE) {
             p -= MAP_SIZE;
         }
     }
