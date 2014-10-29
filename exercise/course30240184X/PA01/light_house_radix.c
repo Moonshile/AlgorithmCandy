@@ -53,35 +53,41 @@ typedef long LIST_TYPE;
 // map size must be prime
 #define CONTAINER_SIZE (8<<20)
 #define EMPTY (0L)
-#define RADIX (0x0f000000)
+#define RADIX (0x0f000000L)
 
 long _bucket[CONTAINER_SIZE], _bucketHelp[CONTAINER_SIZE];
 
-#define COPY_TO_H(i) {\
-    for(i = 0; i < CONTAINER_SIZE; _bucketHelp[i] = _bucket[i++]);\
-    memset(_bucket, 0, sizeof(long)*CONTAINER_SIZE);\
+void sort_driver() {
+    int i;
+    for(i = 0; i < 16; i++) {
+        sort(RADIX, _bucket, _bucketHelp, 0, CONTAINER_SIZE);
+    }
 }
 
-void sort() {
-    int radix = RADIX >> 4, i, j, bucket_c = 0x10, num_in_every_bucket = CONTAINER_SIZE >> 4, base, addr;
-    while(radix) {
-        COPY_TO_H(i);
-        for(i = 0; i < bucket_c; i++) {
-            base = i*num_in_every_bucket;
-            for(j = 0; j < num_in_every_bucket; j++) {
-                addr = base | j;
-                if(_bucketHelp[addr]) {
-                    switch(radix&_bucket[addr]) {
-                    case 0x0:
-                        
-                        break;
-                    }
-                }
+void sort(long radix, long* buckets, long* bHelp, int lo, int hi) {
+    int i, ii[16], len = hi - lo, sub_len = len>>4, tmp;
+    if(radix) {
+        memset(ii, 0, sizeof(int)*16);
+        for(i = lo; i < hi; bHelp[i] = buckets[i++]);
+        memset(buckets + lo, 0, sizeof(long)*len);
+        /*for(i = lo; i < len; i++) {
+            if(bHelp[i]) {
+                tmp = radix & bHelp[i];
+                buckets[lo + sub_len*(tmp) + (ii[tmp]++)] = bHelp[i];
             }
+        }*/
+        for(i = 0; i < 16; i++) {
+            sort(radix >> 4, buckets, bHelp, lo + sub_len*i, lo + sub_len*(i + 1));
         }
-        radix >>= 4;
-        bucket_c <<= 4;
-        num_in_every_bucket >>= 4;
+    }
+}
+
+void put_to_array(LIST_TYPE* res) {
+    int i, j;
+    for(i = 0; i < CONTAINER_SIZE; i++) {
+        if(_bucket[i]) {
+            res[j++] = _bucket[i];
+        }
     }
 }
 
@@ -143,14 +149,15 @@ int main() {
     long long res = 0;
     fread_buf = (char*)malloc(sizeof(char)*MAX_BUF_LEN);
     read_from_stdin();
+    memset(_bucket, 0, sizeof(long)*CONTAINER_SIZE);
     next_int(&n);
-    init_map();
     for(i = 0; i < n; i++) {
         next_int(&x);
         next_int(&y);
-        insert((y<<32) | x);
+        _bucket[i] = (y<<32) | x;
     }
     free(fread_buf);
+    sort_driver();
     lights = (LIST_TYPE*)malloc(sizeof(LIST_TYPE)*n);
     put_to_array(lights);
     res = msort(lights, 0, n);
