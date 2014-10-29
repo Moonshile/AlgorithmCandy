@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_BUF_LEN (80<<10<<10)
+#define MAX_BUF_LEN (100<<10<<10)
 
 char fread_buf[MAX_BUF_LEN];
 int fread_buf_pointer = 0;
@@ -13,7 +13,7 @@ char *read_from_stdin() {
 }
 
 // next integer, prefix blanks will be removed
-int next_int(int *res) {
+int next_int(long *res) {
     char c = fread_buf[fread_buf_pointer++];
     int is_pos = 1;
     while(!(c >= '0' && c <= '9' || c == '\0' || c == '-')) {
@@ -37,65 +37,68 @@ int next_int(int *res) {
     return c;
 }
 
-typedef int LIST_TYPE;
+typedef long LIST_TYPE;
 
 #define CUTOFF (3)
+#define LOW32 (0xffffffffL)
+#define HIGH32 (0xffffffff00000000L)
+#define GET_X(YX) (YX&LOW32)
+// YX1 > YX2 iff Y1 > Y2
+#define GET_Y(YX) (YX)
 
 // swap the location of a and b
-void swap(LIST_TYPE* list_x, LIST_TYPE* list_y, int a, int b) {
-    long tmp = ((long)list_x[a] << 32) | list_y[a];
-    list_x[a] = list_x[b];
-    list_x[b] = (int)(tmp >> 32);
-    list_y[a] = list_y[b];
-    list_y[b] = (int)tmp;
+void swap(LIST_TYPE* list, int a, int b) {
+    LIST_TYPE tmp = list[a];
+    list[a] = list[b];
+    list[b] = tmp;
 }
 
 // sort a 3-more-element list, which has a range [lo, hi)
-void sort3(LIST_TYPE* list_x, LIST_TYPE* list_y, int lo, int hi) {
-    int mid = (lo + hi)/2;
+void sort3(LIST_TYPE* list, int lo, int hi) {
+    int mid = (lo + hi)>>1;
     hi--;
-    if(list_x[lo] > list_x[mid]) {
-        swap(list_x, list_y, lo, mid);
+    if(GET_X(list[lo]) > GET_X(list[mid])) {
+        swap(list, lo, mid);
     }
-    if(list_x[lo] > list_x[hi]) {
-        swap(list_x, list_y, lo, hi);
+    if(GET_X(list[lo]) > GET_X(list[hi])) {
+        swap(list, lo, hi);
     }
-    if(list_x[mid] > list_x[hi]) {
-        swap(list_x, list_y, mid, hi);
+    if(GET_X(list[mid]) > GET_X(list[hi])) {
+        swap(list, mid, hi);
     }
 }
 
 // select the median of list which has a range [lo, hi)
 // the median is the median of elements at the first, middle, and last location in the list
-LIST_TYPE median3(LIST_TYPE* list_x, LIST_TYPE* list_y, int lo, int hi) {
-    int mid = (lo + hi)/2;
-    sort3(list_x, list_y, lo, hi);
-    swap(list_x, list_y, mid, hi - 2);
-    return list_x[hi - 2];
+LIST_TYPE median3(LIST_TYPE* list, int lo, int hi) {
+    int mid = (lo + hi)>>1;
+    sort3(list, lo, hi);
+    swap(list, mid, hi - 2);
+    return list[hi - 2];
 }
 
 // sort a list with range [lo, hi)
-void myQsort(LIST_TYPE* list_x, LIST_TYPE* list_y, int lo, int hi) {
+void myQsort(LIST_TYPE* list, int lo, int hi) {
     int i, j;
     LIST_TYPE pivot;
     if(lo + CUTOFF < hi) {
-        pivot = median3(list_x, list_y, lo, hi);
+        pivot = GET_X(median3(list, lo, hi));
         i = lo;
         j = hi - 2;
         for(; ; ) {
-            while(list_x[++i] < pivot){}
-            while(list_x[--j] > pivot){}
+            while(GET_X(list[++i]) < pivot){}
+            while(GET_X(list[--j]) > pivot){}
             if(i < j) {
-                swap(list_x, list_y, i, j);
+                swap(list, i, j);
             } else {
                 break;
             }
         }
-        swap(list_x, list_y, i, hi - 2);
-        myQsort(list_x, list_y, lo, i);
-        myQsort(list_x, list_y, i + 1, hi);
+        swap(list, i, hi - 2);
+        myQsort(list, lo, i);
+        myQsort(list, i + 1, hi);
     } else {
-        sort3(list_x, list_y, lo, hi);
+        sort3(list, lo, hi);
     }
 }
 
@@ -113,14 +116,14 @@ long long merge(LIST_TYPE* list, LIST_TYPE* tmp, int lo, int mi, int hi) {
         // but will produce extra iterations in this loop
         
         // c hasn't been copied, and c[k] is lower than b[j]
-        if(k < len_c && c[k] < b[j]) {
+        if(k < len_c && GET_Y(c[k]) < GET_Y(b[j])) {
             a[i++] = c[k++];
         }
         // c has been copied, OR b[j] is not greater than c[k]
         // (1) if c has been copied, then you should copy b only
         // (2) else if b[j] < c[k], surely you should copy b,
         //     and if b[j] == c[k], you should copy b first to ensure stability.
-        if(len_c <= k || b[j] <= c[k]) {
+        if(len_c <= k || GET_Y(b[j]) <= GET_Y(c[k])) {
             a[i++] = b[j++];
             res += len_c - k;
         }
@@ -130,8 +133,7 @@ long long merge(LIST_TYPE* list, LIST_TYPE* tmp, int lo, int mi, int hi) {
 
 // act merge sort
 long long msort_do(LIST_TYPE *list, LIST_TYPE *tmp, int lo, int hi) {
-    if(lo + 1 < hi)
-    {
+    if(lo + 1 < hi) {
         int mid = (lo + hi)>>1;
         long long a = msort_do(list, tmp, lo, mid);
         long long b = msort_do(list, tmp, mid, hi);
@@ -150,23 +152,21 @@ long long msort(LIST_TYPE *list, int lo, int hi) {
 }
 
 int main() {
-    int i, n, x, y, j;
-    LIST_TYPE *lights_x, *lights_y;
+    int i, n, j;
+    long x, y;
+    LIST_TYPE *lights;
     long long res = 0;
     read_from_stdin();
     next_int(&n);
-    lights_x = (LIST_TYPE*)malloc(sizeof(LIST_TYPE)*n);
-    lights_y = (LIST_TYPE*)malloc(sizeof(LIST_TYPE)*n);
+    lights = (LIST_TYPE*)malloc(sizeof(LIST_TYPE)*n);
     for(i = 0; i < n; i++) {
         next_int(&x);
         next_int(&y);
-        lights_x[i] = x;
-        lights_y[i] = y;
+        lights[i] = (y<<32) | x;
     }
-    myQsort(lights_x, lights_y, 0, n);
-    free(lights_x);
-    res = msort(lights_y, 0, n);
-    free(lights_y);
+    myQsort(lights, 0, n);
+    res = msort(lights, 0, n);
+    free(lights);
     printf("%lld", res);
     return 0;
 }
