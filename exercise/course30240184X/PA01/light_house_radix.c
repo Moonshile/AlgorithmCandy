@@ -48,45 +48,40 @@ typedef long LIST_TYPE;
 
 #define MAX_X (100000000)
 
-//***************************** hash map for sort x *******************************************
+//***************************** radix sort x *************************************************
 
 // map size must be prime
-#define MAP_SIZE (13466917)
+#define CONTAINER_SIZE (8<<20)
 #define EMPTY (0L)
+#define RADIX (0x0f000000)
 
-long _map[MAP_SIZE];
+long _bucket[CONTAINER_SIZE], _bucketHelp[CONTAINER_SIZE];
 
-long *init_map() {
-    memset(_map, EMPTY, sizeof(long)*MAP_SIZE);
-    return _map;
+#define COPY_TO_H(i) {\
+    for(i = 0; i < CONTAINER_SIZE; _bucketHelp[i] = _bucket[i++]);\
+    memset(_bucket, 0, sizeof(long)*CONTAINER_SIZE);\
 }
 
-#define HASH_FUNC(X) (X%MAP_SIZE)
-
-int find(int x) {
-    int p = HASH_FUNC(x), collision = 0;
-    while(_map[p] != EMPTY && (int)(_map[p]) != x) {
-        p += ((++collision)<<1) - 1;
-        if(p >= MAP_SIZE) {
-            p -= MAP_SIZE;
+void sort() {
+    int radix = RADIX >> 4, i, j, bucket_c = 0x10, num_in_every_bucket = CONTAINER_SIZE >> 4, base, addr;
+    while(radix) {
+        COPY_TO_H(i);
+        for(i = 0; i < bucket_c; i++) {
+            base = i*num_in_every_bucket;
+            for(j = 0; j < num_in_every_bucket; j++) {
+                addr = base | j;
+                if(_bucketHelp[addr]) {
+                    switch(radix&_bucket[addr]) {
+                    case 0x0:
+                        
+                        break;
+                    }
+                }
+            }
         }
-    }
-    return p;
-}
-
-void insert(long yx) {
-    _map[find((int)yx)] = yx;
-}
-
-void put_to_array(long* array) {
-    int i, j, p;
-    for(i = 1, j = 0; i <= MAX_X; i++) {
-        // if _map[find(i)] is EMPTY, i as x must also do not exist
-        // else i as x is at _map[find(i)]
-        p = find(i);
-        if(_map[p]) {
-            array[j++] = _map[p];
-        }
+        radix >>= 4;
+        bucket_c <<= 4;
+        num_in_every_bucket >>= 4;
     }
 }
 
