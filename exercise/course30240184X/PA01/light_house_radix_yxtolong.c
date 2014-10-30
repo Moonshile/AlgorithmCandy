@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAX_BUF_LEN (100<<10<<10)
 
-char fread_buf[MAX_BUF_LEN];
+char *fread_buf;
 int fread_buf_pointer = 0;
 
 char *read_from_stdin() {
@@ -39,12 +40,57 @@ int next_int(long *res) {
 
 typedef long LIST_TYPE;
 
-#define CUTOFF (3)
 #define LOW32 (0xffffffffL)
 #define HIGH32 (0xffffffff00000000L)
 #define GET_X(YX) (YX&LOW32)
 // YX1 > YX2 iff Y1 > Y2
 #define GET_Y(YX) (YX)
+
+#define MAX_X (100000000)
+
+//***************************** radix sort x *************************************************
+
+// map size must be prime
+#define CONTAINER_SIZE (16<<20)
+#define BUCKET_SIZE (CONTAINER_SIZE>>4)
+#define EMPTY (0L)
+#define RADIX (0xfL)
+
+long *get_buckets() {
+    long* buckets = (long*)malloc(sizeof(long)*CONTAINER_SIZE);
+    memset(buckets, 0L, sizeof(long)*CONTAINER_SIZE);
+    return buckets;
+}
+
+void rsort_driver(long* array, int lo, int hi) {
+    long radix = RADIX, zeros = 0, *buckets = get_buckets();
+    while(radix < 0xf0000000L) {
+        rsort(radix, zeros, buckets, array, lo, hi);
+        radix <<= 4;
+        zeros += 4;
+    }
+    free(buckets);
+}
+
+void rsort(long radix, int zeros, long* buckets, long* array, int lo, int hi) {
+    int len = hi - lo, i, j, k, bi[16], r;
+    array += lo;
+    memset(bi, 0, sizeof(int)*16);
+    for(i = 0; i < len; i++) {
+        r = (radix & array[i])>>zeros;
+        buckets[r*BUCKET_SIZE + (bi[r]++)] = array[i];
+    }
+    // copy back and reset
+    for(i = 0, k = 0; i < 16; i++) {
+        for(j = 0; j < BUCKET_SIZE && buckets[j]; j++) {
+            array[k++] = buckets[j];
+            buckets[j] = 0L;
+        }
+        buckets += BUCKET_SIZE;
+    }
+}
+
+//********************************** quick sort ***********************************************
 
 #define CUTOFF (3)
 
@@ -104,6 +150,8 @@ void myQsort(LIST_TYPE* list, int lo, int hi) {
     }
 }
 
+//********************************** merge sort ***********************************************
+
 // merge two sub lists that have been sorted
 long long merge(LIST_TYPE* list, LIST_TYPE* tmp, int lo, int mi, int hi) {
     LIST_TYPE* a = list + lo, *b = tmp + lo, *c = list + mi;
@@ -153,11 +201,14 @@ long long msort(LIST_TYPE *list, int lo, int hi) {
     return res;
 }
 
+#define THRESHOLD (2000000)
+
 int main() {
     int i, n, j;
     long x, y;
     LIST_TYPE *lights;
     long long res = 0;
+    fread_buf = (char*)malloc(sizeof(char)*MAX_BUF_LEN);
     read_from_stdin();
     next_int(&n);
     lights = (LIST_TYPE*)malloc(sizeof(LIST_TYPE)*n);
@@ -166,7 +217,12 @@ int main() {
         next_int(&y);
         lights[i] = (y<<32) | x;
     }
-    myQsort(lights, 0, n);
+    free(fread_buf);
+    if(n > THRESHOLD) {
+        rsort_driver(lights, 0, n);
+    } else {
+        myQsort(lights, 0, n);
+    }
     res = msort(lights, 0, n);
     free(lights);
     printf("%lld", res);
