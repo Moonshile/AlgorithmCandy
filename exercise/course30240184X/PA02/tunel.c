@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char *read_from_stdin();
+// return the input buffer
+char *reset_io();
 int next_int(int*);
 char next_char();
 
@@ -27,7 +28,7 @@ int max();
 int main() {
     int n, x, i;
     char ch;
-    read_from_stdin();
+    reset_io();
     next_int(&n);
     init();
     for(i = 0; i < n; i++) {
@@ -104,14 +105,18 @@ int max() {
     return top(_stack_en_m);
 }
 
-#define MAX_BUF_LEN (100<<10<<10)
+//****************************** fast io ****************************************
+#define IN_BUF_LEN (100<<10<<10)
+#define OUT_BUF_SIZE (10<<20)
 
-char fread_buf[MAX_BUF_LEN];
+char fread_buf[IN_BUF_LEN];
 int fread_buf_pointer = 0;
+char outbuf[OUT_BUF_SIZE];
 
-char *read_from_stdin() {
-    int len = fread(fread_buf, sizeof(char), MAX_BUF_LEN, stdin);
+char *reset_io() {
+    int len = fread(fread_buf, sizeof(char), IN_BUF_LEN, stdin);
     fread_buf[len] = '\0';
+    setvbuf(stdout, outbuf, _IOFBF, OUT_BUF_SIZE);
     return fread_buf;
 }
 

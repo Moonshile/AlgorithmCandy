@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_BUF_LEN (20<<10<<10)
-char *read_from_stdin();
+//****************************** fast io ****************************************
+// return the input buffer
+char *reset_io();
 int next_int(int*);
 
 int stack_p = 0;
@@ -31,9 +32,11 @@ void my_pop() {
     *(--BUF) = '\n';*(--BUF) = 'h';*(--BUF) = 's';*(--BUF) = 'u';*(--BUF) = 'p';\
 }
 
+#define MAX_BUF_LEN (100<<10<<10)
+
 int main() {
     int n, m, i, j, *out, *stack, x;
-    char* buf = read_from_stdin();
+    char* buf = reset_io();
     next_int(&n);
     next_int(&m);
     out = (int*)malloc(n*sizeof(int));
@@ -61,28 +64,42 @@ int main() {
     return 0;
 }
 
-char fread_buf[MAX_BUF_LEN];
-int fread_buf_pointer = 0;
+//****************************** fast io ****************************************
+#define IN_BUF_LEN (100<<10<<10)
+#define OUT_BUF_SIZE (10<<20)
 
-char *read_from_stdin() {
-    int len = fread(fread_buf, sizeof(char), MAX_BUF_LEN, stdin);
+char fread_buf[IN_BUF_LEN];
+int fread_buf_pointer = 0;
+char outbuf[OUT_BUF_SIZE];
+
+char *reset_io() {
+    int len = fread(fread_buf, sizeof(char), IN_BUF_LEN, stdin);
     fread_buf[len] = '\0';
+    setvbuf(stdout, outbuf, _IOFBF, OUT_BUF_SIZE);
     return fread_buf;
 }
 
 // next integer, prefix blanks will be removed
 int next_int(int *res) {
-    *res = 0;
     char c = fread_buf[fread_buf_pointer++];
-    while(!(c >= '0' && c <= '9' || c == '\0')) {
+    int is_pos = 1;
+    while(!(c >= '0' && c <= '9' || c == '\0' || c == '-')) {
         c = fread_buf[fread_buf_pointer++];
     }
     if(c == '\0') {
         return 0;
     }
+    if(c == '-') {
+        is_pos = 0;
+        c = fread_buf[fread_buf_pointer++];
+    }
+    *res = 0;
     while(c >= '0' && c <= '9') {
         *res = (*res)*10 + c - '0';
         c = fread_buf[fread_buf_pointer++];
+    }
+    if(!is_pos) {
+        *res = -*res;
     }
     return c;
 }

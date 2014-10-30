@@ -2,61 +2,64 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *read_from_stdin();
-int next_int(int*);
-int next_longlong(long long*);
+typedef unsigned int DATATYPE;
 
-#define COMPUTE(A, B, X) (B - B*X/A)
+char *reset_io();
+int next_int(int*);
+int next_number(DATATYPE*);
+
+#define COMPUTE(A, B, X) ((long)B - (long)B*(long)X/(long)A)
 
 int main() {
     int n, m, i, lo, hi, mid;
-    long long *ys, *xs, x, y;
-    char* buf = read_from_stdin();
+    DATATYPE *ys, *xs, x, y;
+    char* buf = reset_io();
     next_int(&n);
     next_int(&m);
-    ys = (long long*)malloc(n*sizeof(long long));
-    xs = (long long*)malloc(n*sizeof(long long));
+    ys = (DATATYPE*)malloc(n*sizeof(DATATYPE));
+    xs = (DATATYPE*)malloc(n*sizeof(DATATYPE));
     for(i = 0; i < n; i++) {
-        next_longlong(xs + i);
-        next_longlong(ys + i);
+        next_number(xs + i);
+        next_number(ys + i);
     }
     buf[0] = '\0';
     for(i = 0; i < m; i++) {
         lo = 0, hi = n, mid;
-        next_longlong(&x);
-        next_longlong(&y);
+        next_number(&x);
+        next_number(&y);
         while(lo < hi) {
             mid = (hi + lo)>>1;
-            if(y < COMPUTE(xs[mid], ys[mid], x)) {
+            if((long)y < COMPUTE(xs[mid], ys[mid], x)) {
                 hi = mid;
             } else {
                 lo = mid + 1;
             }
         }
         printf("%d\n", lo);
-        //sprintf(buf + strlen(buf), "%d\n\0", lo);
     }
-    //printf("%s", buf);
     return 0;
 }
 
 //----------------------------- my libs ----------------------------------------
 
 
-#define MAX_BUF_LEN (100<<10<<10)
+#define IN_BUF_LEN (100<<10<<10)
+#define OUT_BUF_SIZE (10<<20)
 
-char fread_buf[MAX_BUF_LEN];
+char fread_buf[IN_BUF_LEN];
 int fread_buf_pointer = 0;
+char outbuf[OUT_BUF_SIZE];
 
-char *read_from_stdin() {
-    int len = fread(fread_buf, sizeof(char), MAX_BUF_LEN, stdin);
+char *reset_io() {
+    int len = fread(fread_buf, sizeof(char), IN_BUF_LEN, stdin);
     fread_buf[len] = '\0';
+    setvbuf(stdout, outbuf, _IOFBF, OUT_BUF_SIZE);
     return fread_buf;
 }
 
 // next integer, prefix blanks will be removed
-int next_longlong(long long *res) {
-    *res = 0LL;
+int next_number(DATATYPE *res) {
+    *res = 0;
     char c = fread_buf[fread_buf_pointer++];
     while(!(c >= '0' && c <= '9' || c == '\0')) {
         c = fread_buf[fread_buf_pointer++];
@@ -65,7 +68,7 @@ int next_longlong(long long *res) {
         return 0;
     }
     while(c >= '0' && c <= '9') {
-        *res = (*res)*10LL + (long long)(c - '0');
+        *res = (*res)*10 + (DATATYPE)(c - '0');
         c = fread_buf[fread_buf_pointer++];
     }
     return c;
