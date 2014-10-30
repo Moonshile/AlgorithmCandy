@@ -50,7 +50,6 @@ typedef long LIST_TYPE;
 
 //***************************** radix sort x *************************************************
 
-// map size must be prime
 #define CONTAINER_SIZE (16<<20)
 #define BUCKET_SIZE (CONTAINER_SIZE>>4)
 #define EMPTY (0L)
@@ -60,16 +59,6 @@ long *get_buckets() {
     long* buckets = (long*)malloc(sizeof(long)*CONTAINER_SIZE);
     memset(buckets, 0L, sizeof(long)*CONTAINER_SIZE);
     return buckets;
-}
-
-void rsort_driver(long* array, int lo, int hi) {
-    long radix = RADIX, zeros = 0, *buckets = get_buckets();
-    while(radix < 0xf0000000L) {
-        rsort(radix, zeros, buckets, array, lo, hi);
-        radix <<= 4;
-        zeros += 4;
-    }
-    free(buckets);
 }
 
 void rsort(long radix, int zeros, long* buckets, long* array, int lo, int hi) {
@@ -88,6 +77,16 @@ void rsort(long radix, int zeros, long* buckets, long* array, int lo, int hi) {
         }
         buckets += BUCKET_SIZE;
     }
+}
+
+void rsort_driver(long* array, int lo, int hi) {
+    long radix = RADIX, zeros = 0, *buckets = get_buckets();
+    while(radix < 0xf0000000L) {
+        rsort(radix, zeros, buckets, array, lo, hi);
+        radix <<= 4;
+        zeros += 4;
+    }
+    free(buckets);
 }
 
 //********************************** quick sort ***********************************************
