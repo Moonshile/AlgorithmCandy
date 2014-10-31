@@ -10,7 +10,7 @@ int next_str(char*);
 
 int main(){
     int n, code;
-    read_from_stdin();
+    reset_io();
     do {
         code = next_int(&n);
         //code = next_char();
