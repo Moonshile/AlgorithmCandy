@@ -9,25 +9,22 @@ char next_char();
 int next_str(char*);
 
 int main(){
-    int n, code;
-    reset_io();
-    do {
-        code = next_int(&n);
-        //code = next_char();
-        printf("%d ", n);
-    } while(code);
+    char* buf = reset_io();
+    // todo
+    free(buf);
     return 0;
 }
 
 //****************************** fast io ****************************************
-#define IN_BUF_LEN (100<<10<<10)
+#define IN_BUF_LEN (10<<20)
 #define OUT_BUF_SIZE (10<<20)
 
-char fread_buf[IN_BUF_LEN];
+char *fread_buf;
 int fread_buf_pointer = 0;
 char outbuf[OUT_BUF_SIZE];
 
 char *reset_io() {
+    fread_buf = (char*)malloc(sizeof(char)*IN_BUF_LEN);
     int len = fread(fread_buf, sizeof(char), IN_BUF_LEN, stdin);
     fread_buf[len] = '\0';
     setvbuf(stdout, outbuf, _IOFBF, OUT_BUF_SIZE);
