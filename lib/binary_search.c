@@ -1,8 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//************************************** binary search **********************************************
+
 typedef int LIST_TYPE;
 int bin_search(LIST_TYPE*, int, int, LIST_TYPE, int (*)(const void*, const void *));
+
+//************************************** binary search **********************************************
 
 // search e in list, with range [lo, hi)
 // if e does not exist, then return the greatest index of the element that not greater than e
@@ -12,7 +16,11 @@ int bin_search(LIST_TYPE *list, int lo, int hi, LIST_TYPE e, int (*cmp)(const vo
         int mi = (hi + lo)>>1;
         // if e < list[mi] then search [lo, mi) else [mi+1, hi)
         // if e== list[mi], then search [mi+1, hi) until [mi+1, mi+1) and break to return mi+1-1
-        ((*cmp)((const void *)e, (const void *)list[mi]) < 0) ? hi = mi : lo  = mi + 1;
+        if(((*cmp)((const void *)e, (const void *)list[mi]) < 0)) {
+            hi = mi;
+        } else {
+            lo  = mi + 1;
+        }
     }
     return --lo;
 }

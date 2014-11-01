@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//*************************************** qsort **************************************************
+
 typedef int LIST_TYPE;
 void swap(LIST_TYPE*, int, int);
 void sort3(LIST_TYPE*, int, int, int (*)(const void *, const void *));
 LIST_TYPE median3(LIST_TYPE*, int, int, int (*)(const void *, const void *));
 void myQsort(LIST_TYPE*, int, int, int (*)(const void *, const void *));
+
+//************************************** qsort ***************************************************
 
 #define CUTOFF (3)
 
