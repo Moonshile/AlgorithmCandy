@@ -26,6 +26,7 @@ int main(){
     wleft[COORDINATE_RANGE - 1] = MAX_W_SUM; // init wleft[COORDINATE_RANGE - 1] so that line 36 (init of min) won't be unpredictable
     for(i = 1, wleft[0] = 0LL, w_sum_tmp = w_list[0], x_tmp = 0; i < COORDINATE_RANGE; i++) {
         if(w_list[i]) {
+            // f(n) = f(n - 1) + left_w_sum*delta_n_x
             wleft[i] = wleft[x_tmp] + w_sum_tmp*(i - x_tmp);
             x_tmp = i;
             w_sum_tmp += w_list[i];
