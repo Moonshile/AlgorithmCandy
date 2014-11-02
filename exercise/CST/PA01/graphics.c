@@ -19,7 +19,7 @@ void myQsort(LIST_TYPE*, int, int, int (*)(const void *, const void *));
 #define COMPUTE(A, B, X) ((long)B - (long)B*(long)X/(long)A)
 
 int compare(const void *x, const void *y) {
-    return (long long)x > (long long)y;
+    return (int)((long)x - (long)y);
 }
 
 int main() {
@@ -56,7 +56,6 @@ int main() {
     }
     free(ys);
     free(xs);
-    free(xs);
     free(buf);
     return 0;
 }
@@ -64,14 +63,15 @@ int main() {
 //----------------------------- my libs ----------------------------------------
 
 
-#define IN_BUF_LEN (10<<10<<10)
+#define IN_BUF_LEN (10<<20)
 #define OUT_BUF_SIZE (10<<20)
 
-char fread_buf[IN_BUF_LEN];
+char *fread_buf;
 int fread_buf_pointer = 0;
 char outbuf[OUT_BUF_SIZE];
 
 char *reset_io() {
+    fread_buf = (char*)malloc(sizeof(char)*IN_BUF_LEN);
     int len = fread(fread_buf, sizeof(char), IN_BUF_LEN, stdin);
     fread_buf[len] = '\0';
     setvbuf(stdout, outbuf, _IOFBF, OUT_BUF_SIZE);
