@@ -8,7 +8,6 @@ typedef struct __creature__ {
 } Creature;
 
 typedef Creature LIST_TYPE;
-typedef float SEARCH_TYPE;
 
 //****************************** fast io *******************************************************
 // return the input buffer
@@ -27,7 +26,9 @@ void myQsort(LIST_TYPE*, int, int, int (*)(const void *, const void *));
 
 // search e in list, with range [lo, hi)
 // if e does not exist, then return the greatest index of the element that not greater than e
-int bin_search(SEARCH_TYPE*, int, int, SEARCH_TYPE, double (*)(const void*, const void *));
+int bin_search(LIST_TYPE*, int, int, LIST_TYPE, int (*)(const void*, const void *));
+// if e does not exist, then return the lowest index of the element that not greater than e
+int bin_search_first(LIST_TYPE*, int, int, LIST_TYPE, int (*)(const void*, const void *));
 
 //*************************************** program ***************************************************
 
@@ -35,19 +36,19 @@ int compare_height(const void *x, const void *y) {
     return ((Creature*)y)->height - ((Creature*)x)->height;
 }
 
-double compare_hit(const void *x, const void *y) {
-    return (*(SEARCH_TYPE*)y) - (*(SEARCH_TYPE*)x);
+int compare_hit(const void *x, const void *y) {
+    return ((Creature*)x)->positive - ((Creature*)y)->positive;
 }
 
-double compare_false(const void *x, const void *y) {
-    return (*(SEARCH_TYPE*)x) - (*(SEARCH_TYPE*)y);
+int compare_false(const void *x, const void *y) {
+    return ((Creature*)x)->negative - ((Creature*)y)->negative;
 }
 
 int main(){
     char* buf = reset_io(), ch;
     int n, h, m, i, j, hh, hf;
-    float *phits, *pfalses, phit, pfalse;
-    Creature* cs;
+    float phit, pfalse;
+    Creature* cs, hit_false_num;
     next_int(&n);
     next_int(&h);
     cs = (Creature*)malloc(sizeof(Creature)*n);
@@ -76,39 +77,37 @@ int main(){
     }
     // now n is count of height
     n = i + 1;
-    // compute phit and pfalse
-    phits = (float*)malloc(sizeof(float)*n);
-    pfalses = (float*)malloc(sizeof(float)*n);
-    // phits: desc
-    for(i = 0; i < n; i++) {
-        phits[i] = ((float)cs[n - 1 - i].positive)/cs[n - 1].positive;
-    }
-    // pfalses: asc
-    for(i = 0; i < n; i++) {
-        pfalses[i] = ((float)cs[i].negative)/cs[n - 1].negative;
-    }
     // search
     next_int(&m);
     for(i = 0; i < m; i++) {
         next_float(&phit);
         next_float(&pfalse);
+        hit_false_num.positive = (int)(phit*(cs[n - 1].positive));
+        if((double)(hit_false_num.positive) < phit*(cs[n - 1].positive)) {
+            hit_false_num.positive++;
+        }
+        hit_false_num.negative = (int)(pfalse*(cs[n - 1].negative));
         // hits is sorted desc, so need minus by n-1
-        hh = n - 1 - bin_search(phits, 0, n, phit, &compare_hit);
-        hf = bin_search(pfalses, 0, n, pfalse, &compare_false);
-        // hh > hf means that height of phit is lower than pfalse
-        if(hh == n || hf == -1 || hh > hf) {
+        hh = bin_search_first(cs, 0, n, hit_false_num, &compare_hit);
+        hf = bin_search(cs, 0, n, hit_false_num, &compare_false);
+        //convert to height
+        hh = cs[hh].height;
+        // remember: hh is not lower than 0 forever
+        if(hit_false_num.positive == 0) {
+            hh = h;
+        }
+        if(hf < n - 1) {
+            hf = cs[hf + 1].height + 1;
+        } else {
+            hf = 0;
+        }
+        if(hf > hh) {
             printf("-1\n");
         } else {
-            //convert to height
-            hh = hh <= 0 ? cs[hh].height : cs[hh - 1].height - 1;
-            hh = phit == 0.0f ? h : hh;
-            hf = hf >= n - 1 ? 0 : cs[hf + 1].height + 1;
             printf("%d %d\n", hf, hh);
         }
     }
     free(cs);
-    free(phits);
-    free(pfalses);
     free(buf);
     return 0;
 }
@@ -247,13 +246,13 @@ void myQsort(LIST_TYPE *list, int lo, int hi, int (*cmp)(const void *, const voi
 
 // search e in list, with range [lo, hi)
 // if e does not exist, then return the greatest index of the element that not greater than e
-int bin_search(SEARCH_TYPE *list, int lo, int hi, SEARCH_TYPE e, double (*cmp)(const void*, const void *)){
+int bin_search(LIST_TYPE *list, int lo, int hi, LIST_TYPE e, int (*cmp)(const void*, const void *)){
     // invariant: list[lo] <= e < list[hi]
     while(lo < hi){
         int mi = (hi + lo)>>1;
         // if e < list[mi] then search [lo, mi) else [mi+1, hi)
         // if e== list[mi], then search [mi+1, hi) until [mi+1, mi+1) and break to return mi+1-1
-        if(((*cmp)((const void *)&e, (const void *)(list + mi)) < 0.0f)) {
+        if(((*cmp)((const void *)&e, (const void *)(list + mi)) < 0)) {
             hi = mi;
         } else {
             lo  = mi + 1;
@@ -262,3 +261,18 @@ int bin_search(SEARCH_TYPE *list, int lo, int hi, SEARCH_TYPE e, double (*cmp)(c
     return --lo;
 }
 
+// if e does not exist, then return the lowest index of the element that not greater than e
+int bin_search_first(LIST_TYPE *list, int lo, int hi, LIST_TYPE e, int (*cmp)(const void*, const void *)){
+    // invariant: list[lo] <= e < list[hi]
+    while(lo < hi){
+        int mi = (hi + lo)>>1;
+        // if e < list[mi] then search [lo, mi) else [mi+1, hi)
+        // if e== list[mi], then search [mi+1, hi) until [mi+1, mi+1) and break to return mi+1-1
+        if(((*cmp)((const void *)&e, (const void *)(list + mi)) <= 0)) {
+            hi = mi;
+        } else {
+            lo  = mi + 1;
+        }
+    }
+    return lo;
+}
