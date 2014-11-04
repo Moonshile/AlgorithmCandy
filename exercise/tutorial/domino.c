@@ -13,7 +13,7 @@ int next_number(char**, int*);
 #define POSITIVE (0)
 #define NEGATIVE (1)
 // x and y are arrays to store big integer, and the higher digits are stored RIGHT side
-#define MAX_SIZE (100)
+#define MAX_SIZE (3100)
 // radix is 1000000000 i.e. 10^9, and 2^32 is about 4 billion
 #define RADIX (1000000000)
 typedef struct __bigint__ {
@@ -25,34 +25,77 @@ typedef struct __bigint__ {
 int convert_to_bigint(char* str, int len, int sign, Bigint* num);
 // init as integer
 void init_bigint(Bigint* x, int v);
+// shift: after multiplication, shift the result to higher digits
+void scalar_mult(Bigint* x, Bigint* res, int scalar, int shift);
 // add x, y: x = x + y
 void add(Bigint* x, Bigint* y);
+// minus x, y: x = x - y
+void minus(Bigint* x, Bigint* y);
 // mult x, y, z, t: z = x*y
 void multiple(Bigint* x, Bigint* y, Bigint* res, Bigint* tmp);
 // x, digits, sign
 void print_bigint(Bigint* num);
 
+Bigint* _bs[3], *_us[3], *_intermediate, *_tmp;
+
+void init_series() {
+    int bs[] = {2, 2, 4}, us[] = {0, 0, 0}, i;
+    for(i = 0; i < 3; i++) {
+        _bs[i] = (Bigint*)malloc(sizeof(Bigint));
+        init_bigint(_bs[i], bs[i]);
+    }
+    for(i = 0; i < 3; i++) {
+        _us[i] = (Bigint*)malloc(sizeof(Bigint));
+        init_bigint(_us[i], us[i]);
+    }
+    _intermediate = (Bigint*)malloc(sizeof(Bigint));
+    init_bigint(_intermediate, 0);
+}
+
+void next_ugly() {
+    add(_intermediate, _us[2]);
+    add(_intermediate, _us[2]);
+    add(_intermediate, _bs[0]);
+    _tmp = _us[0];
+    _us[0] = _us[1];
+    _us[1] = _us[2];
+    _us[2] = _intermediate;
+    _intermediate = _tmp;
+    init_bigint(_intermediate, 0);
+}
+
+void next_beautiful() {
+    add(_intermediate, _bs[1]);
+    add(_intermediate, _bs[1]);
+    add(_intermediate, _bs[0]);
+    _tmp = _bs[0];
+    _bs[0] = _bs[1];
+    _bs[1] = _bs[2];
+    _bs[2] = _intermediate;
+    _intermediate = _tmp;
+    init_bigint(_intermediate, 0);
+}
+
+Bigint* ugly(int n) {
+    int i;
+    init_series();
+    if(n <= 2) {
+        return _intermediate;
+    }
+    for(i = 2; i < n; i++) {
+        next_ugly();
+        next_beautiful();
+    }
+    return _us[2];
+}
+
 int main(){
     char* buf = reset_io(), *num;
-    // x and y are arrays to store big integer, and the higher digits are stored RIGHT side
-    int n, i, len, sign;
-    Bigint x, y, mult, tmp;
+    int n, i;
+    Bigint* x;
     next_int(&n);
-    init_bigint(&x, 0);
-    init_bigint(&y, 0);
-    init_bigint(&mult, 0);
-    init_bigint(&tmp, 0);
-    for(i = 0; i < n; i++) {
-        len = next_number(&num, &sign);
-        convert_to_bigint(num, len, sign, &x);
-        len = next_number(&num, &sign);
-        convert_to_bigint(num, len, sign, &y);
-        multiple(&x, &y, &mult, &tmp);
-        print_bigint(&mult);
-        init_bigint(&x, 0);
-        init_bigint(&y, 0);
-        init_bigint(&mult, 0);
-    }
+    x = ugly(n);
+    print_bigint(x);
     free(buf);
     return 0;
 }
@@ -126,6 +169,27 @@ void add(Bigint* x, Bigint* y) {
     }
 }
 
+void minus(Bigint* x, Bigint* y) {
+    int i, carry = 0, digits = x->digits > y->digits ? x->digits : y->digits;
+    for(i = 0; i < digits; i++) {
+        // DO NOT forget the carry!!!!!!!!!!!
+        (x->value)[i] += carry;
+        if((x->value)[i] < (y->value)[i]) {
+            carry = -1;
+            (x->value)[i] += RADIX;
+        }
+        (x->value)[i] -= (y->value)[i];
+    }
+    if(carry < 0) {
+        x->sign = NEGATIVE;
+    }
+    x->digits = 1;
+    i = 1;
+    while((x->value)[i]) {
+        (x->digits) ++;
+    }
+}
+
 void multiple(Bigint* x, Bigint* y, Bigint* res, Bigint* tmp) {
     int i;
     res->digits = 0;
@@ -152,8 +216,8 @@ void print_bigint(Bigint* num) {
 }
 
 //****************************** fast io ****************************************
-#define IN_BUF_LEN (10<<10<<10)
-#define OUT_BUF_SIZE (10<<20)
+#define IN_BUF_LEN (1<<10)
+#define OUT_BUF_SIZE (1<<10)
 
 char *fread_buf;
 int fread_buf_pointer = 0;
