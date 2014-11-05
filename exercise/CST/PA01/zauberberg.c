@@ -100,7 +100,7 @@ int main(){
             printf("-1\n");
         } else {
             //convert to height
-            hh = hh <= 0 ? cs[hh].height : cs[hh - 1].height - 1;
+            hh = cs[hh].height;
             hh = phit == 0.0f ? h : hh;
             hf = hf >= n - 1 ? 0 : cs[hf + 1].height + 1;
             printf("%d %d\n", hf, hh);
