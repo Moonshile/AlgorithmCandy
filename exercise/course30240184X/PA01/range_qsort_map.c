@@ -10,8 +10,6 @@ void swap(LIST_TYPE*, int, int);
 void sort3(LIST_TYPE*, int, int, int (*)(const void*, const void*));
 LIST_TYPE median3(LIST_TYPE*, int, int, int (*)(const void*, const void*));
 void myQsort(LIST_TYPE*, int, int, int (*)(const void*, const void*));
-//************************************** binary search **********************************************
-int bin_search(LIST_TYPE*, int, int, LIST_TYPE, int (*)(const void*, const void*));
 
 //****************************** program ******************************************************
 
@@ -23,31 +21,27 @@ int compare(const void* x, const void* y) {
 #define NOT_INIT (-2)
 
 int main(){
-    int n, m, i, ia, ib;
+    int n, m, i, j, ia, ib;
     LIST_TYPE *points, a, b, *query_map;
     reset_io();
+    query_map = (LIST_TYPE*)malloc(sizeof(LIST_TYPE)*MAX_NUM);
     scanf("%d %d", &n, &m);
     points = (LIST_TYPE*)malloc(sizeof(LIST_TYPE)*n);
-    query_map = (LIST_TYPE*)malloc(sizeof(LIST_TYPE)*MAX_NUM);
-    memset(query_map, NOT_INIT, sizeof(LIST_TYPE)*MAX_NUM);
     for(i = 0; i < n; i++) {
         scanf("%d", points + i);
     }
     myQsort(points, 0, n, &compare);
+    for(i = 0, j = 0; i < MAX_NUM; i++) {
+        if(i == points[j]) {
+            query_map[i] = j++;
+        } else {
+            query_map[i] = j - 1;
+        }
+    }
     for(i = 0; i < m; i++) {
         scanf("%d %d", &a, &b);
-        if(query_map[a] == NOT_INIT) {
-            ia = bin_search(points, 0, n, a, &compare);
-            query_map[a] = ia;
-        } else {
-            ia = query_map[a];
-        }
-        if(query_map[b] == NOT_INIT) {
-            ib = bin_search(points, 0, n, b, &compare);
-            query_map[b] = ib;
-        } else {
-            ib = query_map[b];
-        }
+        ia = query_map[a];
+        ib = query_map[b];
         ia = ia < 0 ? 0 : (a == points[ia] ? ia : ia + 1);
         printf("%d\n", ia > ib ? 0 : ib - ia + 1);
     }
@@ -125,23 +119,4 @@ void myQsort(LIST_TYPE* list, int lo, int hi, int (*cmp)(const void*, const void
     } else {
         sort3(list, lo, hi, cmp);
     }
-}
-
-//************************************** binary search **********************************************
-
-// search e in list, with range [lo, hi)
-// if e does not exist, then return the greatest index of the element that not greater than e
-int bin_search(LIST_TYPE* list, int lo, int hi, LIST_TYPE e, int (*cmp)(const void*, const void*)){
-    // invariant: list[lo] <= e < list[hi]
-    while(lo < hi){
-        int mi = (hi + lo)>>1;
-        // if e < list[mi] then search [lo, mi) else [mi+1, hi)
-        // if e== list[mi], then search [mi+1, hi) until [mi+1, mi+1) and break to return mi+1-1
-        if(((*cmp)((const void*)&e, (const void*)(list + mi)) < 0)) {
-            hi = mi;
-        } else {
-            lo  = mi + 1;
-        }
-    }
-    return --lo;
 }
