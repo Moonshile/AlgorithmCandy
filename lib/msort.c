@@ -1,11 +1,14 @@
 #include<stdlib.h>
 #include<stdio.h>
 
-typedef int LIST_TYPE;
+//*********************************** merge sort *****************************************************
 
+typedef int LIST_TYPE;
 void merge(LIST_TYPE*, LIST_TYPE*, int, int, int, int (*)(const void*, const void*));
-void msort_do(LIST_TYPE*, LIST_TYPE*, int, int, int (*)(const void*, const void *));
-void msort(LIST_TYPE*, int, int, int (*)(const void*, const void *));
+void msort_do(LIST_TYPE*, LIST_TYPE*, int, int, int (*)(const void*, const void*));
+void msort(LIST_TYPE*, int, int, int (*)(const void*, const void*));
+
+//*********************************** merge sort *****************************************************
 
 // merge two sub lists that have been sorted
 void merge(LIST_TYPE* list, LIST_TYPE* tmp, int lo, int mi, int hi, int (*cmp)(const void*, const void*)){
@@ -20,21 +23,21 @@ void merge(LIST_TYPE* list, LIST_TYPE* tmp, int lo, int mi, int hi, int (*cmp)(c
         // but will produce extra iterations in this loop
         
         // c hasn't been copied, and c[k] is lower than b[j]
-        if(k < len_c && (*cmp)((const void*)c[k], (const void*)b[j]) < 0) {
+        if(k < len_c && (*cmp)((const void*)(c + k), (const void*)(b + j)) < 0) {
             a[i++] = c[k++];
         }
         // c has been copied, OR b[j] is not greater than c[k]
         // (1) if c has been copied, then you should copy b only
         // (2) else if b[j] < c[k], surely you should copy b,
         //     and if b[j] == c[k], you should copy b first to ensure stability.
-        if(len_c <= k || (*cmp)((const void*)b[j], (const void*)c[k]) <= 0) {
+        if(len_c <= k || (*cmp)((const void*)(b + j), (const void*)(c + k)) <= 0) {
             a[i++] = b[j++];
         }
     }
 }
 
 // act merge sort
-void msort_do(LIST_TYPE *list, LIST_TYPE *tmp, int lo, int hi, int (*cmp)(const void*, const void *)){
+void msort_do(LIST_TYPE* list, LIST_TYPE* tmp, int lo, int hi, int (*cmp)(const void*, const void*)){
     if(lo + 1 < hi)
     {
         int mid = (lo + hi)>>1;
@@ -45,14 +48,16 @@ void msort_do(LIST_TYPE *list, LIST_TYPE *tmp, int lo, int hi, int (*cmp)(const 
 }
 
 // merge sort driver, sort range [lo, hi) of list
-void msort(LIST_TYPE *list, int lo, int hi, int (*cmp)(const void*, const void *)){
-    LIST_TYPE *tmp = (LIST_TYPE*)malloc(sizeof(LIST_TYPE)*(hi - lo));
+void msort(LIST_TYPE* list, int lo, int hi, int (*cmp)(const void*, const void*)){
+    LIST_TYPE* tmp = (LIST_TYPE*)malloc(sizeof(LIST_TYPE)*(hi - lo));
     msort_do(list, tmp, lo, hi, cmp);
     free(tmp);
 }
 
-int compare(const void *x, const void *y){
-    return (int)((long)x - (long)y);
+//************************************************* test ****************************************
+
+int compare(const void* x, const void* y){
+    return (int)(*(LIST_TYPE*)x - *(LIST_TYPE*)y);
 }
 
 int main(){

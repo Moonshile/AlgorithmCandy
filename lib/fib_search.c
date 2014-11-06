@@ -1,15 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//********************************** fibonacci search ***********************************************************
+
 typedef int LIST_TYPE;
 int fib(int);
 int fib_get();
 int fib_pre();
 int fib_next();
-int fib_search(LIST_TYPE*, int, int, LIST_TYPE, int (*)(const void*, const void *));
+int fib_search(LIST_TYPE*, int, int, LIST_TYPE, int (*)(const void*, const void*));
+
+//********************************** fibonacci search ***********************************************************
 
 // search e in list, with range [lo, hi), and if e does not exist, return -1
-int fib_search(LIST_TYPE *list, int lo, int hi, LIST_TYPE e, int (*cmp)(const void*, const void *)){
+int fib_search(LIST_TYPE* list, int lo, int hi, LIST_TYPE e, int (*cmp)(const void*, const void*)){
     int mi;
     // locate the Fibonacci numbers to the greatest one that lower than hi - lo
     fib(hi - lo);
@@ -21,9 +25,9 @@ int fib_search(LIST_TYPE *list, int lo, int hi, LIST_TYPE e, int (*cmp)(const vo
             fib_pre();
         }
         mi = lo + fib_get() - 1;
-        if((*cmp)((const void *)e, (const void *)list[mi]) < 0) {
+        if((*cmp)((const void*)&e, (const void*)(list + mi)) < 0) {
             hi = mi;
-        } else if ((*cmp)((const void *)list[mi], (const void *)e) < 0) {
+        } else if ((*cmp)((const void*)(list + mi), (const void*)&e) < 0) {
             lo = mi + 1;
         } else {
             return mi;
@@ -62,9 +66,10 @@ int fib_next(){
     return __fib_cur;
 }
 
+//********************************************** test **************************************************
 
-int compare(const void *a, const void *b){
-    return (int)((long)a - (long)b);
+int compare(const void* a, const void* b){
+    return (int)(*(LIST_TYPE*)a - *(LIST_TYPE*)b);
 }
 
 int main(){

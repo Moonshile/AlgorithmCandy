@@ -10,9 +10,8 @@ typedef struct __creature__ {
 typedef Creature LIST_TYPE;
 typedef double SEARCH_TYPE;
 
-//****************************** fast io *******************************************************
-// return the input buffer
-void *reset_io();
+//****************************** fast io ******************************************************
+void reset_io();
 
 //*************************************** qsort **************************************************
 void swap(LIST_TYPE*, int, int);
@@ -123,12 +122,12 @@ int main(){
 #define IN_BUF_SIZE (10<<20)
 #define OUT_BUF_SIZE (10<<20)
 
-char outbuf[OUT_BUF_SIZE];
 char inbuf[IN_BUF_SIZE];
+char outbuf[OUT_BUF_SIZE];
 
-void *reset_io() {
-    setvbuf(stdout, outbuf, _IOFBF, OUT_BUF_SIZE);
+void reset_io() {
     setvbuf(stdin, inbuf, _IOFBF, IN_BUF_SIZE);
+    setvbuf(stdout, outbuf, _IOFBF, OUT_BUF_SIZE);
 }
 
 //************************************** qsort ***************************************************
