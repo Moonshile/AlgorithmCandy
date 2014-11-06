@@ -2,11 +2,36 @@
 #include<stdio.h>
 
 //*********************************** merge sort *****************************************************
-
 typedef int LIST_TYPE;
 void merge(LIST_TYPE*, LIST_TYPE*, int, int, int, int (*)(const void*, const void*));
 void msort_do(LIST_TYPE*, LIST_TYPE*, int, int, int (*)(const void*, const void*));
 void msort(LIST_TYPE*, int, int, int (*)(const void*, const void*));
+
+
+//************************************************* test ****************************************
+
+int compare(const void* x, const void* y){
+    return (int)(*(LIST_TYPE*)x - *(LIST_TYPE*)y);
+}
+
+int main(){
+    LIST_TYPE list[][9] = {
+        {1,2,3,4,5,6,7,8,9},
+        {9,3,6,4,7,4,2,1,5},
+        {9,8,7,6,5,4,3,2,1},
+        {1,2,321,564,6,2135,54,321,321}
+    };
+    int i, j;
+    for(i = 0; i < 4; i++){
+        msort(list[i], 0, 9, &compare);
+        for(j = 0; j < 9; j++){
+            printf("%d ", list[i][j]);
+        }
+        printf("\n");
+    }
+    return 0;
+}
+
 
 //*********************************** merge sort *****************************************************
 
@@ -52,28 +77,4 @@ void msort(LIST_TYPE* list, int lo, int hi, int (*cmp)(const void*, const void*)
     LIST_TYPE* tmp = (LIST_TYPE*)malloc(sizeof(LIST_TYPE)*(hi - lo));
     msort_do(list, tmp, lo, hi, cmp);
     free(tmp);
-}
-
-//************************************************* test ****************************************
-
-int compare(const void* x, const void* y){
-    return (int)(*(LIST_TYPE*)x - *(LIST_TYPE*)y);
-}
-
-int main(){
-    LIST_TYPE list[][9] = {
-        {1,2,3,4,5,6,7,8,9},
-        {9,3,6,4,7,4,2,1,5},
-        {9,8,7,6,5,4,3,2,1},
-        {1,2,321,564,6,2135,54,321,321}
-    };
-    int i, j;
-    for(i = 0; i < 4; i++){
-        msort(list[i], 0, 9, &compare);
-        for(j = 0; j < 9; j++){
-            printf("%d ", list[i][j]);
-        }
-        printf("\n");
-    }
-    return 0;
 }

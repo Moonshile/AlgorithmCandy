@@ -2,12 +2,36 @@
 #include <stdlib.h>
 
 //*************************************** qsort **************************************************
-
 typedef int LIST_TYPE;
 void swap(LIST_TYPE*, int, int);
 void sort3(LIST_TYPE*, int, int, int (*)(const void*, const void*));
 LIST_TYPE median3(LIST_TYPE*, int, int, int (*)(const void*, const void*));
 void myQsort(LIST_TYPE*, int, int, int (*)(const void*, const void*));
+
+
+//********************************************** test ***********************************************
+
+int compare(const void* x, const void* y) {
+    return (int)(*(LIST_TYPE*)x - *(LIST_TYPE*)y);
+}
+
+int main() {
+    LIST_TYPE list[][9] = {
+        {1,2,3,4,5,6,7,8,9},
+        {9,3,6,4,7,4,2,1,5},
+        {9,8,7,6,5,4,3,2,1}
+    };
+    int i, j;
+    for(i = 0; i < 3; i++) {
+        myQsort(list[i], 0, 9, &compare);
+        for(j = 0; j < 9; j++) {
+            printf("%d ", list[i][j]);
+        }
+        printf("\n");
+    }
+    return 0;
+}
+
 
 //************************************** qsort ***************************************************
 
@@ -67,27 +91,4 @@ void myQsort(LIST_TYPE* list, int lo, int hi, int (*cmp)(const void*, const void
     } else {
         sort3(list, lo, hi, cmp);
     }
-}
-
-//********************************************** test ***********************************************
-
-int compare(const void* x, const void* y) {
-    return (int)(*(LIST_TYPE*)x - *(LIST_TYPE*)y);
-}
-
-int main() {
-    LIST_TYPE list[][9] = {
-        {1,2,3,4,5,6,7,8,9},
-        {9,3,6,4,7,4,2,1,5},
-        {9,8,7,6,5,4,3,2,1}
-    };
-    int i, j;
-    for(i = 0; i < 3; i++) {
-        myQsort(list[i], 0, 9, &compare);
-        for(j = 0; j < 9; j++) {
-            printf("%d ", list[i][j]);
-        }
-        printf("\n");
-    }
-    return 0;
 }

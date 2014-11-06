@@ -2,9 +2,25 @@
 #include <stdlib.h>
 
 //************************************** binary search **********************************************
-
 typedef int LIST_TYPE;
 int bin_search(LIST_TYPE*, int, int, LIST_TYPE, int (*)(const void*, const void*));
+
+
+//***************************************** test ********************************************************
+
+int compare(const void* a, const void* b){
+    return (int)(*(LIST_TYPE*)a - *(LIST_TYPE*)b);
+}
+
+int main(){
+    LIST_TYPE list[] = {1,2,3,4,5,6,7,8,9};
+    int i;
+    for(i = 0; i < 10; i++){
+        printf("%d ", bin_search(list, 0, 9, i, &compare));
+    }
+    putchar('\n');
+}
+
 
 //************************************** binary search **********************************************
 
@@ -23,19 +39,4 @@ int bin_search(LIST_TYPE* list, int lo, int hi, LIST_TYPE e, int (*cmp)(const vo
         }
     }
     return --lo;
-}
-
-//***************************************** test ********************************************************
-
-int compare(const void* a, const void* b){
-    return (int)(*(LIST_TYPE*)a - *(LIST_TYPE*)b);
-}
-
-int main(){
-    LIST_TYPE list[] = {1,2,3,4,5,6,7,8,9};
-    int i;
-    for(i = 0; i < 10; i++){
-        printf("%d ", bin_search(list, 0, 9, i, &compare));
-    }
-    putchar('\n');
 }
