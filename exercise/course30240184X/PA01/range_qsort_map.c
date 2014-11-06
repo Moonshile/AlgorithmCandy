@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef int LIST_TYPE;
 //****************************** fast io ******************************************************
@@ -18,20 +19,35 @@ int compare(const void* x, const void* y) {
     return (int)(*(LIST_TYPE*)x - *(LIST_TYPE*)y);
 }
 
+#define MAX_NUM (10<<20)
+#define NOT_INIT (-2)
+
 int main(){
     int n, m, i, ia, ib;
-    LIST_TYPE *points, a, b;
+    LIST_TYPE *points, a, b, *query_map;
     reset_io();
     scanf("%d %d", &n, &m);
     points = (LIST_TYPE*)malloc(sizeof(LIST_TYPE)*n);
+    query_map = (LIST_TYPE*)malloc(sizeof(LIST_TYPE)*MAX_NUM);
+    memset(query_map, NOT_INIT, sizeof(LIST_TYPE)*MAX_NUM);
     for(i = 0; i < n; i++) {
         scanf("%d", points + i);
     }
     myQsort(points, 0, n, &compare);
     for(i = 0; i < m; i++) {
         scanf("%d %d", &a, &b);
-        ia = bin_search(points, 0, n, a, &compare);
-        ib = bin_search(points, 0, n, b, &compare);
+        if(query_map[a] == NOT_INIT) {
+            ia = bin_search(points, 0, n, a, &compare);
+            query_map[a] = ia;
+        } else {
+            ia = query_map[a];
+        }
+        if(query_map[b] == NOT_INIT) {
+            ib = bin_search(points, 0, n, b, &compare);
+            query_map[b] = ib;
+        } else {
+            ib = query_map[b];
+        }
         ia = ia < 0 ? 0 : (a == points[ia] ? ia : ia + 1);
         printf("%d\n", ia > ib ? 0 : ib - ia + 1);
     }
