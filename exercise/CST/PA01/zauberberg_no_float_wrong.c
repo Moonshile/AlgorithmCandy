@@ -27,7 +27,7 @@ void myQsort(LIST_TYPE*, int, int, int (*)(const void *, const void *));
 // search e in list, with range [lo, hi)
 // if e does not exist, then return the greatest index of the element that not greater than e
 int bin_search(LIST_TYPE*, int, int, LIST_TYPE, int (*)(const void*, const void *));
-// if e does not exist, then return the lowest index of the element that not greater than e
+// if e does not exist, then return the lowest index of the element that greater than e
 int bin_search_first(LIST_TYPE*, int, int, LIST_TYPE, int (*)(const void*, const void *));
 
 //*************************************** program ***************************************************
@@ -62,7 +62,7 @@ int main(){
             cs[i].negative ++;
         }
     }
-    // sort desc and unify
+    // sort by height desc and unify
     myQsort(cs, 0, n, &compare_height);
     for(i = 0, j = 1; j < n; j++) {
         if(cs[i].height == cs[j].height) {
@@ -87,7 +87,6 @@ int main(){
             hit_false_num.positive++;
         }
         hit_false_num.negative = (int)(pfalse*(cs[n - 1].negative));
-        // hits is sorted desc, so need minus by n-1
         hh = bin_search_first(cs, 0, n, hit_false_num, &compare_hit);
         hf = bin_search(cs, 0, n, hit_false_num, &compare_false);
         //convert to height
@@ -101,7 +100,7 @@ int main(){
         } else {
             hf = 0;
         }
-        if(hf > hh) {
+        if(hf > hh || hit_false_num.positive > cs[n - 1].positive) {
             printf("-1\n");
         } else {
             printf("%d %d\n", hf, hh);
@@ -261,13 +260,10 @@ int bin_search(LIST_TYPE *list, int lo, int hi, LIST_TYPE e, int (*cmp)(const vo
     return --lo;
 }
 
-// if e does not exist, then return the lowest index of the element that not greater than e
+// if e does not exist, then return the lowest index of the element that greater than e
 int bin_search_first(LIST_TYPE *list, int lo, int hi, LIST_TYPE e, int (*cmp)(const void*, const void *)){
-    // invariant: list[lo] <= e < list[hi]
     while(lo < hi){
         int mi = (hi + lo)>>1;
-        // if e < list[mi] then search [lo, mi) else [mi+1, hi)
-        // if e== list[mi], then search [mi+1, hi) until [mi+1, mi+1) and break to return mi+1-1
         if(((*cmp)((const void *)&e, (const void *)(list + mi)) <= 0)) {
             hi = mi;
         } else {
