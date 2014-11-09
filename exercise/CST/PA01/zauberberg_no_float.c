@@ -9,12 +9,8 @@ typedef struct __creature__ {
 
 typedef Creature LIST_TYPE;
 
-//****************************** fast io *******************************************************
-// return the input buffer
-char *reset_io();
-int next_int(int*);
-char next_char();
-int next_float(float*);
+//****************************** fast io ******************************************************
+void reset_io();
 
 //*************************************** qsort **************************************************
 void swap(LIST_TYPE*, int, int);
@@ -45,17 +41,20 @@ int compare_false(const void *x, const void *y) {
 }
 
 int main(){
-    char* buf = reset_io(), ch;
+    char ch;
     int n, h, m, i, j, hh, hf;
-    float phit, pfalse;
+    double phit, pfalse;
     Creature* cs, hit_false_num;
-    next_int(&n);
-    next_int(&h);
+    reset_io();
+    scanf("%d %d", &n, &h);
     cs = (Creature*)malloc(sizeof(Creature)*n);
     // input
     for(i = 0; i < n; i++) {
-        next_int(&(cs[i].height));
-        ch = next_char();
+        scanf("%d", &(cs[i].height));
+        ch = getchar();
+        while(ch != '+' && ch != '-') {
+            ch = getchar();
+        }
         if(ch == '+') {
             cs[i].positive ++;
         } else {
@@ -78,10 +77,9 @@ int main(){
     // now n is count of height
     n = i + 1;
     // search
-    next_int(&m);
+    scanf("%d", &m);
     for(i = 0; i < m; i++) {
-        next_float(&phit);
-        next_float(&pfalse);
+        scanf("%lf %lf", &phit, &pfalse);
         hit_false_num.positive = (int)(phit*(cs[n - 1].positive));
         if((double)(hit_false_num.positive) < phit*(cs[n - 1].positive)) {
             hit_false_num.positive++;
@@ -107,78 +105,19 @@ int main(){
         }
     }
     free(cs);
-    free(buf);
     return 0;
 }
 
 //****************************** fast io ***********************************************************
-#define IN_BUF_LEN (10<<20)
+#define IN_BUF_SIZE (10<<20)
 #define OUT_BUF_SIZE (10<<20)
 
-char *fread_buf;
-int fread_buf_pointer = 0;
+char inbuf[IN_BUF_SIZE];
 char outbuf[OUT_BUF_SIZE];
 
-char *reset_io() {
-    fread_buf = (char*)malloc(sizeof(char)*IN_BUF_LEN);
-    int len = fread(fread_buf, sizeof(char), IN_BUF_LEN, stdin);
-    fread_buf[len] = '\0';
+void reset_io() {
+    setvbuf(stdin, inbuf, _IOFBF, IN_BUF_SIZE);
     setvbuf(stdout, outbuf, _IOFBF, OUT_BUF_SIZE);
-    return fread_buf;
-}
-
-// next integer, prefix blanks will be removed
-int next_int(int *res) {
-    char c = fread_buf[fread_buf_pointer++];
-    int is_pos = 1;
-    while(!(c >= '0' && c <= '9' || c == '\0' || c == '-')) {
-        c = fread_buf[fread_buf_pointer++];
-    }
-    if(c == '\0') {
-        return 0;
-    }
-    if(c == '-') {
-        is_pos = 0;
-        c = fread_buf[fread_buf_pointer++];
-    }
-    *res = 0;
-    while(c >= '0' && c <= '9') {
-        *res = (*res)*10 + c - '0';
-        c = fread_buf[fread_buf_pointer++];
-    }
-    if(!is_pos) {
-        *res = -*res;
-    }
-    return c;
-}
-
-// next char, only a-zA-Z
-char next_char() {
-    char c = fread_buf[fread_buf_pointer++];
-    while(!(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '\0' || c == '+' || c == '-')) {
-        c = fread_buf[fread_buf_pointer++];
-    }
-    return c;
-}
-
-int next_float(float* res) {
-    int intepart;
-    float radix = 10.0f;
-    char c = (char)next_int(&intepart);
-    *res = intepart;
-    if(c == '.') {
-        c = fread_buf[fread_buf_pointer++];
-    }
-    while(c >= '0' && c <= '9') {
-        if(intepart >= 0) {
-            *res += (c - '0')/radix;
-        } else {
-            *res -= (c - '0')/radix;
-        }
-        c = fread_buf[fread_buf_pointer++];
-        radix *= 10;
-    }
-    return c;
 }
 
 //************************************** qsort ***************************************************

@@ -106,7 +106,7 @@ int main(){
         } else {
             hf = 0;
         }
-        if(hf > hh || phit > 1.0f || pfalse < 0.0f) {
+        if(hf > hh) {
             printf("-1\n");
         } else {
             printf("%d %d\n", hf, hh);
