@@ -13,7 +13,7 @@ int next_number(char**, int*);
 #define POSITIVE (0)
 #define NEGATIVE (1)
 // x and y are arrays to store big integer, and the higher digits are stored RIGHT side
-#define MAX_SIZE (100)
+#define MAX_SIZE (200)
 // radix is 1000000000 i.e. 10^9, and 2^32 is about 4 billion
 #define RADIX (1000000000)
 typedef struct __bigint__ {
