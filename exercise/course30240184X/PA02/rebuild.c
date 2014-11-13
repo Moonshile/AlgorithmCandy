@@ -79,7 +79,7 @@ int main() {
 }
 
 //****************************** fast io ****************************************
-#define IN_BUF_LEN (100<<10<<10)
+#define IN_BUF_LEN (50<<10<<10)
 #define OUT_BUF_SIZE (10<<20)
 
 char fread_buf[IN_BUF_LEN];
