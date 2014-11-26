@@ -43,6 +43,7 @@ int hashInt(int key, int capacity) {
 int findInHashTable(HashTable* table, HashType v, int (*hash)(HashType, int), int (*cmp)(const void*, const void*)) {
     int p = hash(v, table->capacity), collision = 0;
     while(table->table[p] != EMPTY && cmp(table->table + p, &v) != 0) {
+        // (x+1)^2 = x^2 + 2(x+1) - 1
         p += ((++collision)<<1) - 1;
         if(p >= table->capacity) {
             p -= table->capacity;
