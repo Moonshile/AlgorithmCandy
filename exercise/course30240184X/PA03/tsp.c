@@ -2,12 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef int QueueType;
+#define EMPTY_QUEUE_VALUE (0)
+typedef int ListType;
+
 //****************************** fast io ******************************************************
 void reset_io();
 //****************************** queue ******************************************************
-typedef int QueueType;
 typedef struct __queue__ {
-    QueueType* queue;
+    QueueType* container;
     int front;
     int rear;
     int capacity;
@@ -16,8 +19,8 @@ typedef struct __queue__ {
 Queue* newQueue(int capacity);
 void enqueue(Queue* q, QueueType e);
 QueueType dequeue(Queue* q);
+void freeQueue(Queue* q);
 //****************************** list ******************************************************
-typedef int ListType;
 typedef struct __position__ {
     ListType ele;
     struct __position__* pre;
@@ -90,8 +93,7 @@ int main(){
     free(table);
     free(deg);
     free(path);
-    free(q->queue);
-    free(q);
+    freeQueue(q);
     return 0;
 }
 
@@ -111,7 +113,7 @@ void reset_io() {
 
 Queue* newQueue(int capacity) {
     Queue* q = (Queue*)malloc(sizeof(Queue));
-    q->queue = (QueueType*)malloc(sizeof(QueueType)*capacity);
+    q->container = (QueueType*)malloc(sizeof(QueueType)*capacity);
     q->front = 0;
     q->rear = 0;
     q->capacity = capacity;
@@ -121,7 +123,7 @@ Queue* newQueue(int capacity) {
 
 void enqueue(Queue* q, QueueType e) {
     if(q->size < q->capacity) {
-        (q->queue)[(q->rear)++] = e;
+        (q->container)[(q->rear)++] = e;
         if(q->rear >= q->capacity) {
             q->rear -= q->capacity;
         }
@@ -129,18 +131,21 @@ void enqueue(Queue* q, QueueType e) {
     }
 }
 
-#define DEFAULT_QELE (-1)
-
 QueueType dequeue(Queue* q) {
     if(q->size > 0) {
-        QueueType ret = (q->queue)[(q->front)++];
+        QueueType ret = (q->container)[(q->front)++];
         if(q->front >= q->capacity) {
             q->front -= q->capacity;
         }
         (q->size)--;
         return ret;
     }
-    return DEFAULT_QELE;
+    return EMPTY_QUEUE_VALUE;
+}
+
+void freeQueue(Queue* q) {
+    free(q->container);
+    free(q);
 }
 
 //****************************** list ******************************************************

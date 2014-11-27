@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//****************************** list ******************************************************
 typedef int ListType;
+
+//****************************** list ******************************************************
 typedef struct __position__ {
     ListType ele;
     struct __position__* pre;

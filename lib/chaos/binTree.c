@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//****************************** binTree ******************************************************
-#define EMPTY_BIN_TREE_VALUE (0)
 typedef int BinTreeType;
+#define EMPTY_BIN_TREE_VALUE (0)
+
+//****************************** binTree ******************************************************
 typedef struct __bin_node__ {
     BinTreeType ele;
     struct __bin_node__* left;

@@ -1,22 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//*************************************** qsort **************************************************
-typedef int LIST_TYPE;
-void swap(LIST_TYPE*, int, int);
-void sort3(LIST_TYPE*, int, int, int (*)(const void*, const void*));
-LIST_TYPE median3(LIST_TYPE*, int, int, int (*)(const void*, const void*));
-void myQsort(LIST_TYPE*, int, int, int (*)(const void*, const void*));
+typedef int QSORT_TYPE;
 
+//*************************************** qsort **************************************************
+void swap(QSORT_TYPE*, int, int);
+void sort3(QSORT_TYPE*, int, int, int (*)(const void*, const void*));
+QSORT_TYPE median3(QSORT_TYPE*, int, int, int (*)(const void*, const void*));
+void myQsort(QSORT_TYPE*, int, int, int (*)(const void*, const void*));
 
 //********************************************** test ***********************************************
 
 int compare(const void* x, const void* y) {
-    return (int)(*(LIST_TYPE*)x - *(LIST_TYPE*)y);
+    return (int)(*(QSORT_TYPE*)x - *(QSORT_TYPE*)y);
 }
 
 int main() {
-    LIST_TYPE list[][9] = {
+    QSORT_TYPE list[][9] = {
         {1,2,3,4,5,6,7,8,9},
         {9,3,6,4,7,4,2,1,5},
         {9,8,7,6,5,4,3,2,1}
@@ -38,14 +38,14 @@ int main() {
 #define CUTOFF (3)
 
 // swap the location of a and b
-void swap(LIST_TYPE* list, int a, int b) {
-    LIST_TYPE tmp = list[a];
+void swap(QSORT_TYPE* list, int a, int b) {
+    QSORT_TYPE tmp = list[a];
     list[a] = list[b];
     list[b] = tmp;
 }
 
 // sort a 3-more-element list, which has a range [lo, hi)
-void sort3(LIST_TYPE* list, int lo, int hi, int (*cmp)(const void*, const void*)) {
+void sort3(QSORT_TYPE* list, int lo, int hi, int (*cmp)(const void*, const void*)) {
     int mid = (lo + hi)>>1;
     hi--;
     if((*cmp)((const void*)(list + lo), (const void*)(list + mid)) > 0) {
@@ -61,7 +61,7 @@ void sort3(LIST_TYPE* list, int lo, int hi, int (*cmp)(const void*, const void*)
 
 // select the median of list which has a range [lo, hi)
 // the median is the median of elements at the first, middle, and last location in the list
-LIST_TYPE median3(LIST_TYPE* list, int lo, int hi, int (*cmp)(const void*, const void*)) {
+QSORT_TYPE median3(QSORT_TYPE* list, int lo, int hi, int (*cmp)(const void*, const void*)) {
     int mid = (lo + hi)>>1;
     sort3(list, lo, hi, cmp);
     swap(list, mid, hi - 2);
@@ -69,9 +69,9 @@ LIST_TYPE median3(LIST_TYPE* list, int lo, int hi, int (*cmp)(const void*, const
 }
 
 // sort a list with range [lo, hi)
-void myQsort(LIST_TYPE* list, int lo, int hi, int (*cmp)(const void*, const void*)) {
+void myQsort(QSORT_TYPE* list, int lo, int hi, int (*cmp)(const void*, const void*)) {
     int i, j;
-    LIST_TYPE pivot;
+    QSORT_TYPE pivot;
     if(lo + CUTOFF < hi) {
         pivot = median3(list, lo, hi, cmp);
         i = lo;
