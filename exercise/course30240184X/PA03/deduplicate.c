@@ -6,13 +6,13 @@ typedef struct __name__ {
     const char* s;
     int count;
 } Name;
+#define EMPTY_HASH_VALUE (0)
+typedef Name* HashType;
 
 //****************************** fast io ******************************************************
 void reset_io();
 
 //*************************************** hash **************************************************
-#define EMPTY (0)
-typedef Name* HashType;
 typedef struct __hash_table__ {
     HashType* table;
     int capacity;
@@ -22,6 +22,7 @@ int hashStr(const char* key, int capacity);
 int hashInt(int key, int capacity);
 int findInHashTable(HashTable* table, HashType v, int (*hash)(HashType, int), int (*cmp)(const void*, const void*));
 void insertIntoHashTable(HashTable* table, HashType v, int (*hash)(HashType, int), int (*cmp)(const void*, const void*));
+void freeHashTable(HashTable* table);
 
 //****************************** program ******************************************************
 
@@ -58,6 +59,9 @@ int main(){
             t->table[p] = names + i;
         }
     }
+    free(strs);
+    free(names);
+    freeHashTable(t);
     return 0;
 }
 
@@ -80,7 +84,7 @@ HashTable* newHashTable(int capacity) {
     int i;
     t->table = (HashType*)malloc(sizeof(HashType)*capacity);
     for(i = 0; i < capacity; i++) {
-        t->table[i] = EMPTY;
+        t->table[i] = EMPTY_HASH_VALUE;
     }
     t->capacity = capacity;
     return t;
@@ -100,7 +104,8 @@ int hashInt(int key, int capacity) {
 
 int findInHashTable(HashTable* table, HashType v, int (*hash)(HashType, int), int (*cmp)(const void*, const void*)) {
     int p = hash(v, table->capacity), collision = 0;
-    while(table->table[p] != EMPTY && cmp(table->table + p, &v) != 0) {
+    while(table->table[p] != EMPTY_HASH_VALUE && cmp(table->table + p, &v) != 0) {
+        // (x+1)^2 = x^2 + 2(x+1) - 1
         p += ((++collision)<<1) - 1;
         if(p >= table->capacity) {
             p -= table->capacity;
@@ -111,6 +116,11 @@ int findInHashTable(HashTable* table, HashType v, int (*hash)(HashType, int), in
 
 void insertIntoHashTable(HashTable* table, HashType v, int (*hash)(HashType, int), int (*cmp)(const void*, const void*)) {
     table->table[findInHashTable(table, v, hash, cmp)] = v;
+}
+
+void freeHashTable(HashTable* table) {
+    free(table->table);
+    free(table);
 }
 
 
