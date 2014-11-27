@@ -56,7 +56,7 @@ int main(){
     zuma_origin = (char*)malloc(sizeof(char)*MAX_LEN);
     zuma_origin[0] = '\0';
     zuma = zuma_origin + 1;
-    scanf("%s", zuma);
+    //scanf("%s", zuma);
     ch = getchar();
     while(!(ch == '\n' || ch == '\r')) {
         if(ch >= 'A' && ch <= 'Z') {
@@ -80,8 +80,8 @@ int main(){
 }
 
 //****************************** fast io *******************************************************
-#define IN_BUF_SIZE (10<<20)
-#define OUT_BUF_SIZE (10<<20)
+#define IN_BUF_SIZE (1<<20)
+#define OUT_BUF_SIZE (1<<20)
 
 char inbuf[IN_BUF_SIZE];
 char outbuf[OUT_BUF_SIZE];
