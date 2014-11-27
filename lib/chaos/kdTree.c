@@ -51,6 +51,9 @@ StackType top(Stack* s);
 void freeStack(Stack* s);
 
 //****************************** kdTree ******************************************************
+/*
+ * Records with same values will be store in a single node, whose count is stored in count attribute
+ */
 typedef BinNode KdNode;
 typedef BinTree KdTree;
 #define newKdTree newBinTree
@@ -60,8 +63,7 @@ typedef BinTree KdTree;
 struct __kd_element__ {
     KdTreeType* v;
     int level;
-    int lowerCount;
-    int greaterCount;
+    int count;
 };
 KdElement* newKdElement(KdTreeType* v, int level);
 KdNode* findInKdTree(KdTree* kt, KdTreeType* v, int (*cmp)(const void*, const void*));
@@ -74,15 +76,27 @@ KdElement* newKdElement(KdTreeType* v, int level) {
     KdElement* ke = (KdElement*)malloc(sizeof(KdElement));
     ke->v = v;
     ke->level = level;
-    ke->lowerCount = 0;
-    ke->greaterCount = 0;
+    ke->count = 1;
     return ke;
+}
+
+int sameKdTreeValue(KdTreeType* x, KdTreeType* y, int (*cmp)(const void*, const void*)) {
+    int i;
+    for(i = 0; i < K_KD_TREE; i++) {
+        if(cmp(x + i, y + i) != 0) {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 KdNode* findInKdTree(KdTree* kt, KdTreeType* v, int (*cmp)(const void*, const void*)) {
     KdNode* kn = kt->root, *ret = 0;
     while(kn) {
         ret = kn;
+        if(sameKdTreeValue(ret->ele->v, v, cmp)) {
+            return ret;
+        }
         kn = cmp(&(v[ret->ele->level]), &(kn->ele->v[ret->ele->level])) < 0 ? kn->left : kn->right;
     }
     return ret;
@@ -92,7 +106,9 @@ KdNode* insertIntoKdTree(KdTree* kt, KdTreeType* v, int (*cmp)(const void*, cons
     KdNode* parent = findInKdTree(kt, v, cmp);
     if(parent) {
         int pl = parent->ele->level, level = pl + 1 >= K_KD_TREE ? 0 : pl + 1;
-        if(cmp(&(v[pl]), &(parent->ele->v[pl])) < 0) {
+        if(sameKdTreeValue(parent->ele->v, v, cmp)) {
+            parent->ele->count ++;
+        } else if(cmp(&(v[pl]), &(parent->ele->v[pl])) < 0) {
             insertValueAsLeft(newKdElement(v, level), parent);
         } else {
             insertValueAsRight(newKdElement(v, level), parent);
@@ -112,7 +128,7 @@ int rangeAlongLeft(Stack* s, KdNode* kn, KdTreeType* lo, KdTreeType* hi, int (*c
         }
         if(inRange) {
             visit(kn);
-            ret++;
+            ret += kn->ele->count;
         }
         if(kn->right && cmp(kn->ele->v + kn->ele->level, hi + kn->ele->level) <= 0) {
             push(s, kn->right);
@@ -336,7 +352,7 @@ void visit(KdNode* kn) {
         for(i = 0; i < K_KD_TREE; i++) {
             printf("%d-", kn->ele->v[i]);
         }
-        printf(", L:%d, H:%d, S:%d\n", kn->ele->level, kn->height, kn->size);
+        printf(", L:%d, H:%d, S:%d, C:%d\n", kn->ele->level, kn->height, kn->size, kn->ele->count);
     } else {
         printf("-\n");
     }
@@ -344,8 +360,10 @@ void visit(KdNode* kn) {
 
 int main() {
     KdTree* kt = newKdTree();
-    int i = 0, n, vs[] = {0, 1, 4, 5, 3, 2, 9, 7, 8, 6}, s[] = {4, 5, 9, 7};
+    int i = 0, n, vs[] = {0, 1, 4, 5, 3, 2, 9, 7, 8, 6, 8, 6}, s[] = {4, 5, 9, 7};
     KdNode* kn;
+    insertIntoKdTree(kt, vs + i, &compare);
+    i += 2;
     insertIntoKdTree(kt, vs + i, &compare);
     i += 2;
     insertIntoKdTree(kt, vs + i, &compare);
