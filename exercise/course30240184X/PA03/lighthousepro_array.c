@@ -30,7 +30,8 @@ struct __light_house__ {
     int y;
     int type;
     int index; // MAX_INDEX for light points
-    int count; // count corresponding points for the query points
+    int openCount; // count corresponding points for the query points, in open range
+    int closedCount; // count corresponding points for the query points, in closed range
 };
 
 int compareX(const void* x, const void* y) {
@@ -60,7 +61,8 @@ int main(){
     scanf("%d", &n);
     for(i = 0; i < n; i++) {
         scanf("%d %d", &(lh[i].x), &(lh[i].y));
-        lh[i].count = 0;
+        lh[i].openCount = 0;
+        lh[i].closedCount = 0;
         lh[i].index = LIGHT_INDEX;
         lh[i].type = LIGHT;
     }
@@ -85,7 +87,8 @@ int main(){
         lh[i + 3].y = 0;
         lh[i + 3].type = QRE;
         for(j = 0; j < 4; j++) {
-            lh[i + j].count = 0;
+            lh[i].openCount = 0;
+            lh[i].closedCount = 0;
             lh[i + j].index = i;
         }
     }
@@ -100,18 +103,19 @@ int main(){
         for(j = 0; j < 4; j++) {
             switch(lh[i + j].type) {
             case QLB:
+                t += lh[i + j].openCount;
+                break;
             case QRT:
-                t += lh[i + j].count;
+                t += lh[i + j].closedCount;
                 break;
             case QLE:
             case QRE:
-                t -= lh[i + j].count;
+                t -= lh[i + j].openCount;
                 break;
             default:
                 printf("error\n");
                 return 1;
             }
-            //printf("%d:%d ", lh[i + j].type, lh[i + j].count);
         }
         printf("%d\n", t);
     }
@@ -136,7 +140,7 @@ void reset_io() {
 // merge two sub lists that have been sorted
 void merge(MSORT_TYPE* list, MSORT_TYPE* tmp, int lo, int mi, int hi, int (*cmp)(const void*, const void*), int q2){
     MSORT_TYPE* a = list + lo, *b = tmp + lo, *c = list + mi;
-    int len_b = mi - lo, len_c = hi - mi, i, j, k, w, qc = q2;
+    int len_b = mi - lo, len_c = hi - mi, i, j, k, w, v, qc = q2;
     // copy b to its temporary location
     for(i = 0; i < len_b; b[i] = a[i++]);
     // the test should be j < len_b && k < len_c, but in fact, 
@@ -146,7 +150,11 @@ void merge(MSORT_TYPE* list, MSORT_TYPE* tmp, int lo, int mi, int hi, int (*cmp)
         // but will produce extra iterations in this loop
         
         // c hasn't been copied, and c[k] is lower than b[j]
-        if(k < len_c && cmp(c + k, b + j) < 0) {
+        // WARNING: the condition is changed from < to <=, resulting in which sort is not stable
+        if(k < len_c && cmp(c + k, b + j) <= 0) {
+            if(cmp(c + k, b + j) == 0 && b[j].type == QRT && c[k].type == LIGHT) {
+                b[j].closedCount++;
+            }
             if(c[k].type != LIGHT) {
                 qc--;
             }
@@ -156,25 +164,26 @@ void merge(MSORT_TYPE* list, MSORT_TYPE* tmp, int lo, int mi, int hi, int (*cmp)
         // (1) if c has been copied, then you should copy b only
         // (2) else if b[j] < c[k], surely you should copy b,
         //     and if b[j] == c[k], you should copy b first to ensure stability.
-        if(len_c <= k || cmp(b + j, c + k) <= 0) {
+        if(len_c <= k || cmp(b + j, c + k) < 0) {
             if(len_c > k && b[j].type != LIGHT) {
-                // count when
-                // 1. b[j] is the right top query point
-                // 2. y of b[j] not equal to c[k] for that b[j] is a open range as extra query points, and
-                //    2.1 x of b[j] not equal to c[k]
-                //    2.2 c[k] is not a light, then b[j] should know it is lower than points following c[k]
-                if(cmp(b + j, c + k) < 0 && (compareX(b + j, c + k) < 0 || c[k].type != LIGHT) || b[j].type == QRT) {
-                    b[j].count += len_c - k - qc;
+                if(compareX(b + j, c + k) < 0) {
+                    b[j].closedCount += len_c - k - qc;
+                    b[j].openCount += len_c - k - qc;
+                } else if (compareX(b + j, c + k) == 0 && c[k].type != LIGHT) {
+                    b[j].closedCount += c[k].openCount;
+                    b[j].openCount += c[k].openCount;
+                } else if(compareX(b + j, c + k) == 0 && b[j].type == QRT && c[k].type == LIGHT) {
+                    b[j].closedCount += len_c - k - qc;
+                    w = qc;
+                    for(v = k; v < len_c && compareX(b + j, c + v) == 0; v++) {
+                        if(c[v].type != LIGHT) {
+                            w--;
+                        }
+                    }
+                    b[j].openCount += len_c - v - w;
                 }
             }
-            if(len_c > k && cmp(b + j, c + k) == 0) {
-                if(c[k].type != LIGHT) {
-                    qc--;
-                }
-                a[i++] = c[k++];
-            } else {
-                a[i++] = b[j++];
-            }
+            a[i++] = b[j++];
         }
     }
 }
