@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 typedef struct __light_house__ LightHouse;
 typedef LightHouse MSORT_TYPE;
 typedef LightHouse QSORT_TYPE;
@@ -20,18 +22,13 @@ void myQsort(QSORT_TYPE*, int, int, int (*)(const void*, const void*));
 //****************************** program ******************************************************
 
 #define LIGHT_INDEX (100000000)
-#define MAX_SIZE (500000)
-
-// LIGHT for light points, QXX for query points, and R for right, E for extra
-enum POINT_TYPE {LIGHT, QRT, QLB, QLE, QRE};
+#define MAX_SIZE (300000)
 
 struct __light_house__ {
     int x;
     int y;
-    int type;
     int index; // MAX_INDEX for light points
-    int openCount; // count corresponding points for the query points, in open range
-    int closedCount; // count corresponding points for the query points, in closed range
+    int count; // count corresponding points for the query points
 };
 
 int compareX(const void* x, const void* y) {
@@ -49,77 +46,68 @@ int compareXY(const void* x, const void* y) {
     return ((LightHouse*)x)->y - ((LightHouse*)y)->y;
 }
 
+int compareXYDesc(const void* x, const void* y) {
+    if(((LightHouse*)y)->x - ((LightHouse*)x)->x != 0) {
+        return ((LightHouse*)y)->x - ((LightHouse*)x)->x;
+    }
+    return ((LightHouse*)y)->y - ((LightHouse*)x)->y;
+}
+
+int compareYDesc(const void* x, const void* y) {
+    return ((LightHouse*)y)->y - ((LightHouse*)x)->y;
+}
+
 int compareIndex(const void* x, const void* y) {
     return ((LightHouse*)x)->index - ((LightHouse*)y)->index;
 }
 
 int main(){
-    int n, k, i, j, t;
-    LightHouse* lh, lh1, lh2;
+    int n, k, i;
+    LightHouse* lhAsc, *lhDesc;
     reset_io();
-    lh = (LightHouse*)malloc(sizeof(LightHouse)*MAX_SIZE);
+    // sorted ascendantly for query point at right top side
+    lhAsc = (LightHouse*)malloc(sizeof(LightHouse)*MAX_SIZE);
+    // sorted in descendant for query point at left bottom side
+    lhDesc = (LightHouse*)malloc(sizeof(LightHouse)*MAX_SIZE);
     scanf("%d", &n);
     for(i = 0; i < n; i++) {
-        scanf("%d %d", &(lh[i].x), &(lh[i].y));
-        lh[i].openCount = 0;
-        lh[i].closedCount = 0;
-        lh[i].index = LIGHT_INDEX;
-        lh[i].type = LIGHT;
+        scanf("%d %d", &(lhAsc[i].x), &(lhAsc[i].y));
+        lhAsc[i].count = 0;
+        lhAsc[i].index = LIGHT_INDEX;
     }
+    memcpy(lhDesc, lhAsc, sizeof(LightHouse)*n);
     scanf("%d", &k);
+    // if n is 0, simply put 0 out
     if(n == 0) {
         for(i = 0; i < k; i++) {
             printf("0\n");
         }
         return 0;
     }
-    k <<= 2;
-    
+    // put right top query points to lhAsc, and the left bottom query point to lhDesc
     n += k;
-    for(; i < n; i += 4) {
-        scanf("%d %d %d %d", &(lh[i].x), &(lh[i].y), &(lh[i + 1].x), &(lh[i + 1].y));
-        lh[i].type = QLB;
-        lh[i + 1].type = QRT;
-        lh[i + 2].x = 0;
-        lh[i + 2].y = lh[i].y;
-        lh[i + 2].type = QLE;
-        lh[i + 3].x = lh[i].x;
-        lh[i + 3].y = 0;
-        lh[i + 3].type = QRE;
-        for(j = 0; j < 4; j++) {
-            lh[i].openCount = 0;
-            lh[i].closedCount = 0;
-            lh[i + j].index = i;
-        }
+    for(; i < n; i++) {
+        scanf("%d %d %d %d", &(lhDesc[i].x), &(lhDesc[i].y), &(lhAsc[i].x), &(lhAsc[i].y));
+        lhAsc[i].count = 0;
+        lhAsc[i].index = i;
+        lhDesc[i].count = 0;
+        lhDesc[i].index = i;
     }
-    // sort by x
-    myQsort(lh, 0, n, compareXY);
-    // sort by y and compute not Lower/notGreater
-    msort(lh, 0, n, compareY);
     // sort by x and y
-    myQsort(lh, 0, n, compareIndex);
-    for(i = 0; i < k; i += 4) {
-        t = n - k;
-        for(j = 0; j < 4; j++) {
-            switch(lh[i + j].type) {
-            case QLB:
-                t += lh[i + j].openCount;
-                break;
-            case QRT:
-                t += lh[i + j].closedCount;
-                break;
-            case QLE:
-            case QRE:
-                t -= lh[i + j].openCount;
-                break;
-            default:
-                printf("error\n");
-                return 1;
-            }
-        }
-        printf("%d\n", t);
+    myQsort(lhAsc, 0, n, compareXY);
+    myQsort(lhDesc, 0, n, compareXYDesc);
+    // sort by y and count
+    // DIVIDE & CONQUER strategy
+    msort(lhAsc, 0, n, compareY);
+    msort(lhDesc, 0, n, compareYDesc);
+    // sort by x and y
+    myQsort(lhAsc, 0, n, compareIndex);
+    myQsort(lhDesc, 0, n, compareIndex);
+    for(i = 0; i < k; i++) {
+        printf("%d\n", lhAsc[i].count + lhDesc[i].count);
     }
-    free(lh);
+    free(lhAsc);
+    free(lhDesc);
     return 0;
 }
 
@@ -138,9 +126,9 @@ void reset_io() {
 //*********************************** merge sort *****************************************************
 
 // merge two sub lists that have been sorted
-void merge(MSORT_TYPE* list, MSORT_TYPE* tmp, int lo, int mi, int hi, int (*cmp)(const void*, const void*), int q2){
+void merge(MSORT_TYPE* list, MSORT_TYPE* tmp, int lo, int mi, int hi, int (*cmp)(const void*, const void*), int qc){
     MSORT_TYPE* a = list + lo, *b = tmp + lo, *c = list + mi;
-    int len_b = mi - lo, len_c = hi - mi, i, j, k, w, v, qc = q2;
+    int len_b = mi - lo, len_c = hi - mi, i, j, k, w;
     // copy b to its temporary location
     for(i = 0; i < len_b; b[i] = a[i++]);
     // the test should be j < len_b && k < len_c, but in fact, 
@@ -150,12 +138,8 @@ void merge(MSORT_TYPE* list, MSORT_TYPE* tmp, int lo, int mi, int hi, int (*cmp)
         // but will produce extra iterations in this loop
         
         // c hasn't been copied, and c[k] is lower than b[j]
-        // WARNING: the condition is changed from < to <=, resulting in which sort is not stable
-        if(k < len_c && cmp(c + k, b + j) <= 0) {
-            if(cmp(c + k, b + j) == 0 && b[j].type == QRT && c[k].type == LIGHT) {
-                b[j].closedCount++;
-            }
-            if(c[k].type != LIGHT) {
+        if(k < len_c && cmp(c + k, b + j) < 0) {
+            if(c[k].index != LIGHT_INDEX) {
                 qc--;
             }
             a[i++] = c[k++];
@@ -164,23 +148,16 @@ void merge(MSORT_TYPE* list, MSORT_TYPE* tmp, int lo, int mi, int hi, int (*cmp)
         // (1) if c has been copied, then you should copy b only
         // (2) else if b[j] < c[k], surely you should copy b,
         //     and if b[j] == c[k], you should copy b first to ensure stability.
-        if(len_c <= k || cmp(b + j, c + k) < 0) {
-            if(len_c > k && b[j].type != LIGHT) {
-                if(compareX(b + j, c + k) < 0) {
-                    b[j].closedCount += len_c - k - qc;
-                    b[j].openCount += len_c - k - qc;
-                } else if (compareX(b + j, c + k) == 0 && c[k].type != LIGHT) {
-                    b[j].closedCount += c[k].openCount;
-                    b[j].openCount += c[k].openCount;
-                } else if(compareX(b + j, c + k) == 0 && b[j].type == QRT && c[k].type == LIGHT) {
-                    b[j].closedCount += len_c - k - qc;
-                    w = qc;
-                    for(v = k; v < len_c && compareX(b + j, c + v) == 0; v++) {
-                        if(c[v].type != LIGHT) {
-                            w--;
-                        }
+        if(len_c <= k || cmp(b + j, c + k) <= 0) {
+            if(len_c > k && b[j].index != LIGHT_INDEX) {
+                b[j].count += len_c - k - qc;
+            } else if(len_c > k && b[j].index == LIGHT_INDEX && c[k].index != LIGHT_INDEX && compareXY(b + j, c + k) == 0) {
+                // if bj is a light and ck is a query point at bj, 
+                // then inc count of ck as well as all same query points following ck
+                for(w = k; w < len_c && compareXY(b + j, c + w) == 0; w++) {
+                    if(c[w].index != LIGHT_INDEX) {
+                        c[w].count++;
                     }
-                    b[j].openCount += len_c - v - w;
                 }
             }
             a[i++] = b[j++];
@@ -198,7 +175,7 @@ int msort_do(MSORT_TYPE* list, MSORT_TYPE* tmp, int lo, int hi, int (*cmp)(const
         merge(list, tmp, lo, mid, hi, cmp, q2);
         return q1 + q2;
     }
-    return list[lo].type == LIGHT ? 0 : 1;
+    return list[lo].index == LIGHT_INDEX ? 0 : 1;
 }
 
 // merge sort driver, sort range [lo, hi) of list
