@@ -8,10 +8,10 @@ int next_int(int*);
 char next_char();
 int next_str(char*);
 
+//****************************** program ******************************************************
 int main(){
     char* buf = reset_io();
     // todo
-    free(buf);
     return 0;
 }
 
@@ -19,12 +19,11 @@ int main(){
 #define IN_BUF_LEN (10<<20)
 #define OUT_BUF_SIZE (10<<20)
 
-char *fread_buf;
+char fread_buf[IN_BUF_LEN];
 int fread_buf_pointer = 0;
 char outbuf[OUT_BUF_SIZE];
 
 char *reset_io() {
-    fread_buf = (char*)malloc(sizeof(char)*IN_BUF_LEN);
     int len = fread(fread_buf, sizeof(char), IN_BUF_LEN, stdin);
     fread_buf[len] = '\0';
     setvbuf(stdout, outbuf, _IOFBF, OUT_BUF_SIZE);
