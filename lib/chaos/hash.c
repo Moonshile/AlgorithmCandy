@@ -2,31 +2,50 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define EMPTY_HASH_VALUE (0)
-typedef const char* HashType;
+#define TRUE (1)
+#define FALSE (0)
+
+typedef int KeyType;
+typedef int ValueType;
 
 //*************************************** hash **************************************************
+typedef struct __hash_node__ {
+    KeyType key;
+    ValueType value;
+    int empty;
+} HashNode, *HashNodePtr;
+
 typedef struct __hash_table__ {
-    HashType* table;
+    HashNodePtr table;
     int capacity;
-} HashTable;
-HashTable* newHashTable(int capacity);
+    int (*hash)(KeyType, int);
+    int (*cmp)(const void*, const void*);
+} HashTable, *HashTablePtr;
+
+HashTablePtr newHashTable(int capacity, 
+    int (*hash)(KeyType, int), 
+    int (*cmp)(const void*, const void*));
 int hashStr(const char* key, int capacity);
 int hashInt(int key, int capacity);
-int findInHashTable(HashTable* table, HashType v, int (*hash)(HashType, int), int (*cmp)(const void*, const void*));
-void insertIntoHashTable(HashTable* table, HashType v, int (*hash)(HashType, int), int (*cmp)(const void*, const void*));
-void freeHashTable(HashTable* table);
+HashNodePtr findInHashTable(HashTablePtr t, KeyType key);
+void putIntoHashTable(HashTablePtr t, KeyType key, ValueType v);
+HashNodePtr getFromHashTable(HashTablePtr t, KeyType key);
+void freeHashTable(HashTablePtr t);
 
 //*************************************** hash **************************************************
 
-HashTable* newHashTable(int capacity) {
-    HashTable* t = (HashTable*)malloc(sizeof(HashTable));
+HashTablePtr newHashTable(int capacity, 
+    int (*hash)(KeyType, int), 
+    int (*cmp)(const void*, const void*)) {
+    HashTablePtr t = (HashTablePtr)malloc(sizeof(HashTable));
     int i;
-    t->table = (HashType*)malloc(sizeof(HashType)*capacity);
+    t->table = (HashNodePtr)malloc(sizeof(HashNode)*capacity);
     for(i = 0; i < capacity; i++) {
-        t->table[i] = EMPTY_HASH_VALUE;
+        t->table[i].empty = TRUE;
     }
     t->capacity = capacity;
+    t->hash = hash;
+    t->cmp = cmp;
     return t;
 }
 
@@ -42,44 +61,58 @@ int hashInt(int key, int capacity) {
     return key%capacity;
 }
 
-int findInHashTable(HashTable* table, HashType v, int (*hash)(HashType, int), int (*cmp)(const void*, const void*)) {
-    int p = hash(v, table->capacity), collision = 0;
-    while(table->table[p] != EMPTY_HASH_VALUE && cmp(table->table + p, &v) != 0) {
+HashNodePtr findInHashTable(HashTablePtr t, KeyType key) {
+    int p = t->hash(key, t->capacity), collision = 0;
+    while(!(t->table[p].empty) && t->cmp(&(t->table[p].key), &key) != 0) {
         // (x+1)^2 = x^2 + 2(x+1) - 1
         p += ((++collision)<<1) - 1;
-        if(p >= table->capacity) {
-            p -= table->capacity;
+        if(p >= t->capacity) {
+            p -= t->capacity;
         }
     }
-    return p;
+    return t->table + p;
 }
 
-void insertIntoHashTable(HashTable* table, HashType v, int (*hash)(HashType, int), int (*cmp)(const void*, const void*)) {
-    table->table[findInHashTable(table, v, hash, cmp)] = v;
+void putIntoHashTable(HashTablePtr t, KeyType key, ValueType v) {
+    HashNodePtr node = findInHashTable(t, key);
+    node->key = key;
+    node->value = v;
+    node->empty = FALSE;
 }
 
-void freeHashTable(HashTable* table) {
-    free(table->table);
-    free(table);
+HashNodePtr getFromHashTable(HashTablePtr t, KeyType key) {
+    HashNodePtr node = findInHashTable(t, key);
+    if(node->empty) {
+        return NULL;
+    }
+    return node;
+}
+
+void freeHashTable(HashTablePtr t) {
+    free(t->table);
+    free(t);
 }
 
 //*************************************** test **************************************************
 
 int compare(const void* x, const void* y) {
-    return strcmp(*((HashType*)x), *((HashType*)y));
+    return *(KeyType*)x - *(KeyType*)y;
 }
 
 int main() {
     int capacity = 11, i;
-    HashTable* t = newHashTable(capacity);
-    insertIntoHashTable(t, "aesfaga", &hashStr, &compare);
-    insertIntoHashTable(t, "sgs", &hashStr, &compare);
-    insertIntoHashTable(t, "rhse", &hashStr, &compare);
-    insertIntoHashTable(t, "aeserhfaga", &hashStr, &compare);
-    insertIntoHashTable(t, "sjtshesrhserheshesh", &hashStr, &compare);
-    for(i = 0; i < capacity; i++) {
-        if(t->table[i]) {
-            printf("%s\n", t->table[i]);
+    HashTablePtr t = newHashTable(capacity, hashInt, compare);
+    putIntoHashTable(t, 1, 6);
+    putIntoHashTable(t, 2, 7);
+    putIntoHashTable(t, 4, 8);
+    putIntoHashTable(t, 3, 9);
+    putIntoHashTable(t, 5, 10);
+    for(i = 0; i <= 5; i++) {
+        HashNodePtr node = getFromHashTable(t, i);
+        if(node) {
+            printf("key %d values %d\n", node->key, node->value);
+        } else {
+            printf("can find key %d\n", i);
         }
     }
     freeHashTable(t);
