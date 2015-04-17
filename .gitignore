@@ -3,3 +3,5 @@ obj
 *.cbp
 *.depend
 *.layout
+*.out
+test*
