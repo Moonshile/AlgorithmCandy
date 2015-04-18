@@ -140,7 +140,15 @@ int main() {
         if(node) {
             printf("key %d values %d\n", node->key, node->value);
         } else {
-            printf("can find key %d\n", i);
+            printf("cann't find key %d\n", i);
+        }
+    }
+    for(i = 11; i <= 16; i++) {
+        HashNodePtr node = getFromHashTable(t, i);
+        if(node) {
+            printf("key %d values %d\n", node->key, node->value);
+        } else {
+            printf("cann't find key %d\n", i);
         }
     }
     removeFromHashTable(t, 2);
