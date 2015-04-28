@@ -2,8 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TRUE (1)
+#define EMPTY (0)
+#define DELETED (1)
+#define BUSY (2)
+
 #define FALSE (0)
+#define TRUE (1)
 
 typedef int KeyType;
 typedef int ValueType;
@@ -12,7 +16,7 @@ typedef int ValueType;
 typedef struct __hash_node__ {
     KeyType key;
     ValueType value;
-    int empty;
+    int status;
 } HashNode, *HashNodePtr;
 
 typedef struct __hash_table__ {
@@ -27,9 +31,9 @@ HashTablePtr newHashTable(int capacity,
     int (*cmp)(const void*, const void*));
 int hashStr(const char* key, int capacity);
 int hashInt(int key, int capacity);
-HashNodePtr findInHashTable(HashTablePtr t, KeyType key);
 void putIntoHashTable(HashTablePtr t, KeyType key, ValueType v);
 HashNodePtr getFromHashTable(HashTablePtr t, KeyType key);
+void removeFromHashTable(HashTablePtr t, KeyType key);
 void freeHashTable(HashTablePtr t);
 
 //*************************************** hash **************************************************
@@ -41,7 +45,7 @@ HashTablePtr newHashTable(int capacity,
     int i;
     t->table = (HashNodePtr)malloc(sizeof(HashNode)*capacity);
     for(i = 0; i < capacity; i++) {
-        t->table[i].empty = TRUE;
+        t->table[i].status = EMPTY;
     }
     t->capacity = capacity;
     t->hash = hash;
@@ -58,37 +62,42 @@ int hashStr(const char* key, int capacity) {
 }
 
 int hashInt(int key, int capacity) {
-    while(key < 0) {
-        key += capacity;
-    }
-    return key%capacity;
+    return key >= 0 ? key%capacity : (capacity - 1 - (-key)%capacity);
 }
 
-HashNodePtr findInHashTable(HashTablePtr t, KeyType key) {
+HashNodePtr findInHashTable(HashTablePtr t, KeyType key, int for_insert) {
     int p = t->hash(key, t->capacity), collision = 0;
-    while(!(t->table[p].empty) && t->cmp(&(t->table[p].key), &key) != 0) {
+    while(t->table[p].status == BUSY && t->cmp(&(t->table[p].key), &key) != 0
+        || (for_insert ? FALSE : t->table[p].status == DELETED)) {
         // (x+1)^2 = x^2 + 2(x+1) - 1
         p += ((++collision)<<1) - 1;
         if(p >= t->capacity) {
-            p -= t->capacity;
+            p %= t->capacity;
         }
     }
     return t->table + p;
 }
 
 void putIntoHashTable(HashTablePtr t, KeyType key, ValueType v) {
-    HashNodePtr node = findInHashTable(t, key);
+    HashNodePtr node = findInHashTable(t, key, TRUE);
     node->key = key;
     node->value = v;
-    node->empty = FALSE;
+    node->status = BUSY;
 }
 
 HashNodePtr getFromHashTable(HashTablePtr t, KeyType key) {
-    HashNodePtr node = findInHashTable(t, key);
-    if(node->empty) {
+    HashNodePtr node = findInHashTable(t, key, FALSE);
+    if(node->status != BUSY) {
         return NULL;
     }
     return node;
+}
+
+void removeFromHashTable(HashTablePtr t, KeyType key) {
+    HashNodePtr node = getFromHashTable(t, key);
+    if(node) {
+        node->status = DELETED;
+    }
 }
 
 void freeHashTable(HashTablePtr t) {
