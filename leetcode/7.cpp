@@ -12,7 +12,7 @@ public:
         // if x is -2147483648 then -x is also -2147483648
         // so the condition mustn't be != but >
         while(x > 0) {
-            if (res*10/10 < res) {
+            if ((res*10 + x%10)/10 < res) {
                 res = 0;
                 break;
             }
@@ -29,4 +29,5 @@ int main() {
     for(auto t: tests) {
         cout << t << " " << s.reverse(t) << endl;
     }
+    return 0;
 }
