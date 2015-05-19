@@ -20,7 +20,13 @@ public:
             // backwarding
             do {
                 --level;
-                i = level >= 0 ? level_base.back() + 1 : -1;
+                if (level >= 0) {
+                    i = level_base.back();
+                    // locate to next different i to avoid duplicates
+                    for (int old_i = i; i < candidates.size() && candidates[i] == candidates[old_i]; ++i) {}
+                } else {
+                    i = -1;
+                }
                 cur -= c.back();
                 c.pop_back();
                 level_base.pop_back();
