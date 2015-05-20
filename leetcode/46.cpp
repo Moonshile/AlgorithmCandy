@@ -21,7 +21,13 @@ private:
     }
     
 public:
-    void nextPermutation(vector<int>& nums) {
-        next_permutation(nums.begin(), nums.end());
+    vector<vector<int>> permute(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        vector<vector<int>> res;
+        do {
+            vector<int> t = nums;
+            res.push_back(t);
+        } while (next_permutation(nums.begin(), nums.end()));
+        return res;
     }
 };
