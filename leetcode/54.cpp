@@ -24,7 +24,7 @@ public:
                 }
             }
             if (i == m - i || j == n - j) {
-                res.push_back(i == m - i ? matrix[i][n - j] : matrix[m - i][j]);
+                res.push_back(matrix[m - i][n - j]);
             }
         }
         return res;
