@@ -2,27 +2,29 @@ class Solution {
 private:
     using citer = vector<int>::const_iterator;
     
-    citer findMax(citer begin, citer end) {
+    citer searchMax(citer begin, citer end) {
         auto len = end - begin, half = len;
         citer middle;
         while (len > 1) {
             half = len >> 1;
             middle = begin + half;
-            if (*begin <= *middle) {
+            if (*begin > *middle) {
+                len = half;
+            } else {
                 begin = middle;
+                len -= half;
             }
-            len -= half;
         }
         return begin;
     }
     
-    citer binSearch(citer begin, citer end, int target) {
+    citer lowerBound(citer begin, citer end, int value) {
         auto len = end - begin, half = len;
         citer middle;
         while (len > 0) {
             half = len >> 1;
             middle = begin + half;
-            if (target <= *middle) {
+            if (value <= *middle) {
                 len = half;
             } else {
                 begin = middle + 1;
@@ -31,14 +33,16 @@ private:
         }
         return begin;
     }
-    
+
 public:
     int search(vector<int>& nums, int target) {
-        if (nums.size() < 1) {
-            return -1;
+        auto maxValue = searchMax(nums.begin(), nums.end());
+        auto res = lowerBound(nums.begin(), maxValue + 1, target);
+        if (res != nums.end() && *res == target) {
+            return res - nums.begin();
+        } else {
+            res = lowerBound(maxValue + 1, nums.end(), target);
+            return res != nums.end() && *res == target ? res - nums.begin() : -1;
         }
-        auto max = findMax(nums.begin(), nums.end());
-        auto t = target >= nums[0] ? binSearch(nums.begin(), max + 1, target) : binSearch(max + 1, nums.end(), target);
-        return target >= nums[0] && t == max + 1 || t == nums.end() || *t != target ? -1 : t - nums.begin();
     }
 };
