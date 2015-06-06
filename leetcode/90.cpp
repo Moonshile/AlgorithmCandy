@@ -1,6 +1,6 @@
 class Solution {
 public:
-    vector<vector<int>> subsets(vector<int>& nums) {
+    vector<vector<int>> subsetsWithDup(vector<int>& nums) {
         sort(nums.begin(), nums.end());
         vector<int> cur, tmp;
         vector<vector<int>> res{tmp};
@@ -10,14 +10,20 @@ public:
             for (; i < nums.size(); ++i) {
                 cur.push_back(i);
                 vector<int> tmp;
-                for (auto j: cur) {
+                for (int j: cur) {
                     tmp.push_back(nums[j]);
                 }
+                // success
                 res.push_back(tmp);
             }
             // backwarding
-            cur.pop_back();
-            i = cur.empty() ? -1 : cur.back() + 1;
+            while (i == nums.size()) {
+                cur.pop_back();
+                i = cur.empty() ? -1 : cur.back() + 1;
+                while (i > 0 && nums[i] == nums[i - 1]) {
+                    ++i;
+                }
+            }
             if (!cur.empty()) {
                 cur.pop_back();
             }
