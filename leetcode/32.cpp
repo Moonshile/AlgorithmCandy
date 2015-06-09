@@ -1,25 +1,18 @@
 class Solution {
 public:
     int longestValidParentheses(string s) {
-        vector<bool> subs(s.size(), false);
         stack<int> pos;
+        int res = 0, very_left = -1;
         for (int i = 0; i < s.size(); ++i) {
             if (s[i] == '(') {
                 pos.push(i);
             } else if (!pos.empty()) {
-                subs[i] = subs[pos.top()] = true;
                 pos.pop();
+            } else {
+                very_left = i;
             }
+            res = max(res, i - (pos.empty() ? very_left : pos.top()));
         }
-        int res = 0, cur = 0;
-        for (auto i: subs) {
-            if (i) {
-                ++cur;
-            } else if (cur > 0) {
-                res = res > cur ? res : cur;
-                cur = 0;
-            }
-        }
-        return res > cur ? res : cur;
+        return res;
     }
 };
