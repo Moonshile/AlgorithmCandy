@@ -17,6 +17,14 @@ private:
         }
     }
     
+    citer searchLastMax(citer begin, citer end) {
+        auto max = searchMax(begin, end);
+        while (begin + 1 != end && *(begin + 1) == *max) {
+            ++begin;
+        }
+        return *begin == *max ? begin : max;
+    }
+    
     citer lowerBound(citer begin, citer end, int value) {
         auto len = end - begin, half = len;
         citer middle;
@@ -35,12 +43,15 @@ private:
 
 public:
     bool search(vector<int>& nums, int target) {
-        auto maxValue = searchMax(nums.begin(), nums.end());
-        auto res = lowerBound(nums.begin(), maxValue == nums.end() ? maxValue : maxValue + 1, target);
+        if (nums.size() == 0) {
+            return false;
+        }
+        auto maxValue = searchLastMax(nums.begin(), nums.end());
+        auto res = lowerBound(nums.begin(), maxValue + 1, target);
         if (res != nums.end() && *res == target) {
             return true;
         } else {
-            res = lowerBound(maxValue == nums.end() ? maxValue : maxValue + 1, nums.end(), target);
+            res = lowerBound(maxValue + 1, nums.end(), target);
             return res != nums.end() && *res == target;
         }
     }
