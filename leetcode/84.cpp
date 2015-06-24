@@ -13,6 +13,7 @@ public:
                 res = max(res, height[j]*(ascend.empty() ? i : i - ascend.top() - 1));
             }
         }
+        height.pop_back();
         return res;
     }
 };
