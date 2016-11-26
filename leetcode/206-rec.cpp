@@ -7,24 +7,22 @@
  * };
  */
 class Solution {
-private:
-    ListNode *reverseList(ListNode *first, ListNode *&last) {
-        if (first != last) {
-            ListNode *new_first = reverseList(first->next, last);
-            first->next = last->next;
-            last->next = first;
-            last = first;
-            return new_first;
-        }
-        return first;
-    }
-    
 public:
-    ListNode *reverseList(ListNode *head) {
-        ListNode *last = head;
-        while (last && last->next) {
+    ListNode* reverseList(ListNode* head) {
+        if( head == nullptr || head->next == nullptr )
+        {
+            return head;
+        }
+        
+        ListNode* tail = reverseList( head->next );
+        ListNode* last = tail;
+        while( last->next )
+        {
             last = last->next;
         }
-        return reverseList(head, last);
+        last->next = head;
+        head->next = nullptr;
+        
+        return tail;
     }
 };
